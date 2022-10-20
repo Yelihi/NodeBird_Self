@@ -1,10 +1,13 @@
-import React from "react";
+import React, { useCallback } from "react";
 import AppLayout from "../components/AppLayout";
+import { Form } from "antd";
 
 const signup = () => {
+  const onSubmit = useCallback(() => {});
+
   return (
     <AppLayout>
-      <div>회원가입 페이지</div>
+      <Form onFinish={onSubmit}></Form>
     </AppLayout>
   );
 };

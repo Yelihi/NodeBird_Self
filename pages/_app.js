@@ -1,22 +1,23 @@
 import React from "react";
-import "antd/dist/antd.css";
-import PropTypes from "prop-types";
 import Head from "next/head";
+import PropTypes from "prop-types";
+import "antd/dist/antd.css";
 
-const _app = ({ Component }) => {
+import wrapper from "../store/configureStore";
+
+const NodeBird = ({ Component }) => {
   return (
     <>
       <Head>
-        <meta charSet="utf-8" />
-        <title>Nodebird</title>
+        <title>NodeBird</title>
       </Head>
       <Component />
     </>
   );
 };
 
-_app.propTypes = {
+NodeBird.propTypes = {
   Component: PropTypes.elementType.isRequired,
 };
 
-export default _app;
+export default wrapper.withRedux(NodeBird);

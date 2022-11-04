@@ -1,25 +1,32 @@
-import { Button, Form, Input } from "antd";
-import React, { useRef } from "react";
-import { useSelector } from "react-redux";
-import { useCallback } from "react";
-import useInput from "../hooks/useInput";
-import { useDispatch } from "react-redux";
+import React, { useRef, useCallback, useState, useEffect } from "react";
+import { Form, Input, Button } from "antd";
+import { useDispatch, useSelector } from "react-redux";
 
 import { addPost } from "../reducers/post";
 
 const PostForm = () => {
-  const { imagePaths } = useSelector((state) => state.post);
-  const [text, onChangeText] = useInput("");
+  const { imagePaths, postAdded } = useSelector((state) => state.post);
+  const [text, setText] = useState("");
   const dispatch = useDispatch();
   const imageInput = useRef();
-
-  const onSubmit = useCallback(() => {
-    dispatch(addPost);
-  }, []);
 
   const onClickImageUpload = useCallback(() => {
     imageInput.current.click();
   }, [imageInput.current]);
+
+  useEffect(() => {
+    if (postAdded) {
+      setText("");
+    }
+  }, [postAdded]);
+
+  const onChangeText = useCallback((e) => {
+    setText(e.target.value);
+  }, []);
+
+  const onSubmit = useCallback(() => {
+    dispatch(addPost);
+  }, []);
 
   return (
     <Form
@@ -31,7 +38,7 @@ const PostForm = () => {
         value={text}
         onChange={onChangeText}
         maxLength={140}
-        placeholder="어떤 신기한 일이 있나요"
+        placeholder="어떤 신기한 일이 있었나요?"
       />
       <div>
         <input type="file" multiple hidden ref={imageInput} />
@@ -41,14 +48,20 @@ const PostForm = () => {
         </Button>
       </div>
       <div>
-        {imagePaths.map((v) => (
-          <div key={v} style={{ display: "inline-block" }}>
-            <img src={v} style={{ width: "200px" }} alt={v} />
-            <div>
-              <Button>제거</Button>
+        {imagePaths.map((v) => {
+          return (
+            <div key={v} style={{ display: "inline-block" }}>
+              <img
+                src={"http://localhost:3000/" + v}
+                style={{ width: "200px" }}
+                alt={v}
+              />
+              <div>
+                <Button>제거</Button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </Form>
   );

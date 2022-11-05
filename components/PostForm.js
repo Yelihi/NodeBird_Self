@@ -5,7 +5,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { addPost } from "../reducers/post";
 
 const PostForm = () => {
-  const { imagePaths, postAdded } = useSelector((state) => state.post);
+  const { imagePaths, addPostDone, addPostLoading } = useSelector(
+    (state) => state.post
+  );
   const [text, setText] = useState("");
   const dispatch = useDispatch();
   const imageInput = useRef();
@@ -15,18 +17,19 @@ const PostForm = () => {
   }, [imageInput.current]);
 
   useEffect(() => {
-    if (postAdded) {
+    // 글 지워주는거
+    if (addPostDone) {
       setText("");
     }
-  }, [postAdded]);
+  }, [addPostDone]);
 
   const onChangeText = useCallback((e) => {
     setText(e.target.value);
   }, []);
 
   const onSubmit = useCallback(() => {
-    dispatch(addPost);
-  }, []);
+    dispatch(addPost(text));
+  }, [text]);
 
   return (
     <Form
@@ -43,7 +46,12 @@ const PostForm = () => {
       <div>
         <input type="file" multiple hidden ref={imageInput} />
         <Button onClick={onClickImageUpload}>이미지 업로드</Button>
-        <Button type="primary" style={{ float: "right" }} htmlType="submit">
+        <Button
+          type="primary"
+          style={{ float: "right" }}
+          htmlType="submit"
+          loading={addPostLoading}
+        >
           짹짹
         </Button>
       </div>

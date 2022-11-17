@@ -14,6 +14,12 @@ const dummyUser = (data) => ({
 });
 
 export const initialState = {
+  unfollowLoading: false,
+  unfollowDone: false,
+  unfollowError: null,
+  followLoading: false,
+  followDone: false,
+  followError: null,
   logInLoading: false, // 로그인 시도중
   logInDone: false,
   logInError: null,
@@ -79,6 +85,44 @@ export const signUpRequestAction = (data) => {
 export default (state = initialState, action) => {
   return produce(state, (draft) => {
     switch (action.type) {
+      case FOLLOW_REQUEST: {
+        draft.followLoading = true;
+        draft.followDone = false;
+        draft.followError = null;
+        break;
+      }
+      case FOLLOW_SUCCESS: {
+        draft.followLoading = false;
+        draft.followDone = true;
+        draft.me.Followings.push({ id: action.data });
+        break;
+      }
+      case FOLLOW_FAILURE: {
+        draft.followLoading = false;
+        draft.followDone = false;
+        draft.followError = action.error;
+        break;
+      }
+      case UNFOLLOW_REQUEST: {
+        draft.unfollowLoading = true;
+        draft.unfollowDone = false;
+        draft.unfollowError = null;
+        break;
+      }
+      case UNFOLLOW_SUCCESS: {
+        draft.unfollowLoading = false;
+        draft.unfollowDone = true;
+        draft.me.Followings = draft.me.Followings.filter(
+          (v) => v.id !== action.data
+        );
+        break;
+      }
+      case UNFOLLOW_FAILURE: {
+        draft.unfollowLoading = false;
+        draft.unfollowDone = false;
+        draft.unfollowError = action.error;
+        break;
+      }
       case LOG_IN_REQUEST: {
         draft.logInLoading = true;
         draft.logInDone = false;
@@ -88,7 +132,7 @@ export default (state = initialState, action) => {
       case LOG_IN_SUCCESS: {
         draft.logInLoading = false;
         draft.logInDone = true;
-        draft.me = dummyUser(action.user);
+        draft.me = action.data;
         break;
       }
       case LOG_IN_FAILURE: {

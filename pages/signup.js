@@ -1,7 +1,8 @@
-import React, { useCallback, useReducer, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import Router from "next/router";
 import AppLayout from "../components/AppLayout";
 import { Form, Input, Checkbox, Button } from "antd";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 
 import useInput from "../hooks/useInput";
@@ -9,7 +10,28 @@ import { signUpRequestAction } from "../reducers/user";
 
 const signup = () => {
   const dispatch = useDispatch();
-  const { signUpLoading } = useReducer((state) => state.user);
+  const { signUpLoading, signUpDone, signUpError, me } = useSelector(
+    (state) => state.user
+  );
+
+  useEffect(() => {
+    if (me && me.id) {
+      Router.replace("/"); // 뒤로가기 했을 때 그 페이지가 나오지 않게 하기 위함
+    }
+  }, [me && me.id]);
+
+  useEffect(() => {
+    if (signUpDone) {
+      Router.replace("/");
+    }
+  }, [signUpDone]);
+
+  useEffect(() => {
+    if (signUpError) {
+      alert(signUpError);
+    }
+  }, [signUpError]);
+
   const [email, onChangeEmail] = useInput("");
   const [nickname, onChangeNickname] = useInput("");
   const [password, onChangePassword] = useInput("");
@@ -22,11 +44,11 @@ const signup = () => {
     },
     [password]
   );
-  const [term, setTerm] = useState("");
+  const [term, setTerm] = useState(false);
   const [termError, setTermError] = useState(false);
-  const onChangeTerm = useCallback(() => {
-    setTerm(e.target.checked);
+  const onChangeTerm = useCallback((e) => {
     setTermError(false);
+    setTerm(e.target.checked);
   }, []);
 
   const onSubmit = useCallback(() => {
@@ -38,7 +60,7 @@ const signup = () => {
     }
     console.log(email, nickname, password);
     dispatch(signUpRequestAction({ email, nickname, password }));
-  }, [password, passwordCheck, passwordError]);
+  }, [password, passwordCheck, passwordError, term]);
 
   return (
     <AppLayout>

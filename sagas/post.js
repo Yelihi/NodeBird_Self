@@ -8,6 +8,7 @@ import {
   delay,
 } from "redux-saga/effects";
 import shortid from "shortid";
+import axios from "axios";
 
 import {
   LOAD_POSTS_REQUEST,
@@ -49,28 +50,31 @@ function* loadPost(action) {
 }
 
 function addPostAPI(data) {
-  return axios.post("/api/addpost", data);
+  return axios.post(
+    "/post",
+    { content: data },
+    {
+      withCredentials: true,
+    }
+  );
 }
 
 function* addPost(action) {
   try {
-    // const result = yield call(addPostAPI, action.data); // call 은 동기고 fork 는 비동기다. 그러니깐 call 을 해야지 위 axios 결과값을 기다린다.
-    yield delay(2000);
-    const id = shortid.generate();
+    const result = yield call(addPostAPI, action.data); // call 은 동기고 fork 는 비동기다. 그러니깐 call 을 해야지 위 axios 결과값을 기다린다.
+    console.log(result);
     yield put({
       // put = dispatch
       type: ADD_POST_SUCCESS,
-      data: {
-        id,
-        content: action.data,
-      },
+      data: result.data,
     });
     yield put({
       //saga 는 post 에 user 부분을 import 할 수 있다.
       type: ADD_POST_TO_ME,
-      data: id,
+      data: result.data.id,
     });
   } catch (err) {
+    console.error(err);
     yield put({
       type: ADD_POST_FAILURE,
       error: err.response.data,
@@ -105,17 +109,16 @@ function* removePost(action) {
 }
 
 function addCommentAPI(data) {
-  return axios.post(`/api/post/${data.postId}/comment`, data);
+  return axios.post(`/post/${data.postId}/comment`, data);
 }
 
 function* addComment(action) {
   try {
-    // const result = yield call(addPostAPI, action.data); // call 은 동기고 fork 는 비동기다. 그러니깐 call 을 해야지 위 axios 결과값을 기다린다.
-    yield delay(2000);
+    const result = yield call(addCommentAPI, action.data); // call 은 동기고 fork 는 비동기다. 그러니깐 call 을 해야지 위 axios 결과값을 기다린다.
     yield put({
       // put = dispatch
       type: ADD_COMMENT_SUCCESS,
-      data: action.data,
+      data: result.data,
     });
   } catch (err) {
     yield put({

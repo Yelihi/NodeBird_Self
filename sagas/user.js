@@ -44,13 +44,14 @@ function* logIn(action) {
 }
 
 function logOutAPI() {
-  return axios.get("/user/logout");
+  return axios.post("/user/logout");
 }
 
 function* logOut() {
   try {
     console.log("saga logout");
     const result = yield call(logOutAPI); // call 은 동기고 fork 는 비동기다. 그러니깐 call 을 해야지 위 axios 결과값을 기다린다.
+    console.log(result);
     yield put({
       // put = dispatch
       type: LOG_OUT_SUCCESS,

@@ -73,26 +73,6 @@ export const addComment = (data) => ({
   data,
 });
 
-const dummyPost = (data) => ({
-  id: data.id,
-  content: data.content,
-  User: {
-    id: 1,
-    nickname: "제로초",
-  },
-  Images: [],
-  Comments: [],
-});
-
-const dummyComment = (data) => ({
-  id: shortId.generate(),
-  content: data,
-  User: {
-    id: 1,
-    nickname: "제로초",
-  },
-});
-
 // 이전 상태를 액션을 통해 다음 상태로 만들어내는 함수(불변성을 지키면서)
 export default (state = initialState, action) => {
   return produce(state, (draft) => {
@@ -125,7 +105,7 @@ export default (state = initialState, action) => {
       case ADD_POST_SUCCESS: {
         draft.addPostLoading = false;
         draft.addPostDone = true;
-        draft.mainPosts.unshift(dummyPost(action.data));
+        draft.mainPosts.unshift(action.data);
         break;
       }
       case ADD_POST_FAILURE: {
@@ -160,7 +140,7 @@ export default (state = initialState, action) => {
       }
       case ADD_COMMENT_SUCCESS: {
         const post = draft.mainPosts.find((v) => v.id === action.data.postId);
-        post.Comments.unshift(dummyComment(action.data.content));
+        post.Comments.unshift(action.data);
         draft.addCommentLoading = false;
         draft.addCommentDone = true;
         break;

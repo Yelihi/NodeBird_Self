@@ -6,6 +6,7 @@ import PostForm from "../components/PostForm";
 import PostCard from "../components/PostCard";
 
 import { LOAD_POSTS_REQUEST } from "../reducers/post";
+import { LOAD_USER_REQUEST } from "../reducers/user";
 
 const Home = () => {
   const { me } = useSelector((state) => state.user);
@@ -15,6 +16,9 @@ const Home = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    dispatch({
+      type: LOAD_USER_REQUEST,
+    });
     dispatch({
       type: LOAD_POSTS_REQUEST,
     });

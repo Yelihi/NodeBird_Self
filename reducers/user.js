@@ -69,7 +69,7 @@ export const UNFOLLOW_SUCCESS = "UNFOLLOW_SUCCESS";
 export const UNFOLLOW_FAILURE = "UNFOLLOW_FAILURE";
 
 export const ADD_POST_TO_ME = "ADD_POST_TO_ME";
-export const REMOVE_POST_TO_ME = "REMOVE_POST_OF_ME";
+export const REMOVE_POST_OF_ME = "REMOVE_POST_OF_ME";
 
 export const loginRequestAction = (data) => {
   return {
@@ -210,6 +210,7 @@ export default (state = initialState, action) => {
       case CHANGE_NICKNAME_SUCCESS: {
         draft.changeNicknameLoading = false;
         draft.changeNicknameDone = true;
+        draft.me.nickname = action.data.nickname;
         break;
       }
       case CHANGE_NICKNAME_FAILURE: {
@@ -228,9 +229,12 @@ export default (state = initialState, action) => {
       //     Posts: [{ id: action.data }, ...state.me.Posts],
       //   },
       // };
-      case REMOVE_POST_TO_ME:
-        draft.me.Posts = draft.me.Posts.filter((v) => v.id !== action.data);
+      case REMOVE_POST_OF_ME: {
+        draft.me.Posts = draft.me.Posts.filter(
+          (v) => v.id !== action.data.PostId
+        );
         break;
+      }
       // return {
       //   ...state,
       //   me: {

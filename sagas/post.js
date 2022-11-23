@@ -7,10 +7,15 @@ import {
   call,
   delay,
 } from "redux-saga/effects";
-import shortid from "shortid";
 import axios from "axios";
 
 import {
+  LIKE_POST_REQUEST,
+  LIKE_POST_SUCCESS,
+  LIKE_POST_FAILURE,
+  UNLIKE_POST_REQUEST,
+  UNLIKE_POST_SUCCESS,
+  UNLIKE_POST_FAILURE,
   LOAD_POSTS_REQUEST,
   LOAD_POSTS_SUCCESS,
   LOAD_POSTS_FAILURE,
@@ -23,23 +28,20 @@ import {
   ADD_COMMENT_REQUEST,
   ADD_COMMENT_SUCCESS,
   ADD_COMMENT_FAILURE,
-  generateDummyPost,
 } from "../reducers/post";
-import { ADD_POST_TO_ME, REMOVE_POST_TO_ME } from "../reducers/user";
+import { ADD_POST_TO_ME, REMOVE_POST_OF_ME } from "../reducers/user";
 
 function loadPostAPI(data) {
-  return axios.get("/api/addpost", data);
+  return axios.get("/posts", data);
 }
 
 function* loadPost(action) {
   try {
-    // const result = yield call(addPostAPI, action.data); // call 은 동기고 fork 는 비동기다. 그러니깐 call 을 해야지 위 axios 결과값을 기다린다.
-    yield delay(2000);
-    const id = shortid.generate();
+    const result = yield call(loadPostAPI, action.data); // call 은 동기고 fork 는 비동기다. 그러니깐 call 을 해야지 위 axios 결과값을 기다린다.
     yield put({
       // put = dispatch
       type: LOAD_POSTS_SUCCESS,
-      data: generateDummyPost(10),
+      data: result.data, // 게시글 배열 및 유저 정보
     });
   } catch (err) {
     yield put({
@@ -83,26 +85,65 @@ function* addPost(action) {
 }
 
 function removePostAPI(data) {
-  return axios.post("/api/addpost", data);
+  return axios.delete(`post/${data}/post`);
 }
 
 function* removePost(action) {
   try {
-    // const result = yield call(addPostAPI, action.data); // call 은 동기고 fork 는 비동기다. 그러니깐 call 을 해야지 위 axios 결과값을 기다린다.
-    yield delay(2000);
+    const result = yield call(removePostAPI, action.data); // call 은 동기고 fork 는 비동기다. 그러니깐 call 을 해야지 위 axios 결과값을 기다린다.
     yield put({
       // put = dispatch
       type: REMOVE_POST_SUCCESS,
-      data: action.data,
+      data: result.data,
     });
     yield put({
       //saga 는 post 에 user 부분을 import 할 수 있다.
-      type: REMOVE_POST_TO_ME,
-      data: action.data,
+      type: REMOVE_POST_OF_ME,
+      data: result.data,
     });
   } catch (err) {
     yield put({
       type: REMOVE_POST_FAILURE,
+      error: err.response.data,
+    });
+  }
+}
+
+function likePostAPI(data) {
+  return axios.patch(`/post/${data}/like`);
+}
+
+function* likePost(action) {
+  try {
+    const result = yield call(likePostAPI, action.data); // call 은 동기고 fork 는 비동기다. 그러니깐 call 을 해야지 위 axios 결과값을 기다린다.
+    yield put({
+      // put = dispatch
+      type: LIKE_POST_SUCCESS,
+      data: result.data,
+    });
+  } catch (err) {
+    yield put({
+      type: LIKE_POST_FAILURE,
+      error: err.response.data,
+    });
+  }
+}
+
+function unlikePostAPI(data) {
+  return axios.delete(`/post/${data}/like`);
+}
+
+function* unlikePost(action) {
+  try {
+    const result = yield call(unlikePostAPI, action.data); // call 은 동기고 fork 는 비동기다. 그러니깐 call 을 해야지 위 axios 결과값을 기다린다.
+    yield put({
+      // put = dispatch
+      type: UNLIKE_POST_SUCCESS,
+      data: result.data,
+    });
+  } catch (err) {
+    yield put({
+      type: UNLIKE_POST_FAILURE,
       error: err.response.data,
     });
   }
@@ -114,13 +155,15 @@ function addCommentAPI(data) {
 
 function* addComment(action) {
   try {
-    const result = yield call(addCommentAPI, action.data); // call 은 동기고 fork 는 비동기다. 그러니깐 call 을 해야지 위 axios 결과값을 기다린다.
+    const result = yield call(addCommentAPI, action.data);
+    console.log(result); // call 은 동기고 fork 는 비동기다. 그러니깐 call 을 해야지 위 axios 결과값을 기다린다.
     yield put({
       // put = dispatch
       type: ADD_COMMENT_SUCCESS,
       data: result.data,
     });
   } catch (err) {
+    console.error(err);
     yield put({
       type: ADD_COMMENT_FAILURE,
       error: err.response.data,
@@ -144,11 +187,21 @@ function* watchAddComment() {
   yield takeLatest(ADD_COMMENT_REQUEST, addComment);
 }
 
+function* watchLikePost() {
+  yield takeLatest(LIKE_POST_REQUEST, likePost);
+}
+
+function* watchUnlikePost() {
+  yield takeLatest(UNLIKE_POST_REQUEST, unlikePost);
+}
+
 export default function* postSaga() {
   yield all([
     fork(watchLoadPost),
     fork(watchAddPost),
     fork(watchAddComment),
     fork(watchRemovePost),
+    fork(watchLikePost),
+    fork(watchUnlikePost),
   ]);
 }

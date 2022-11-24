@@ -23,6 +23,15 @@ import {
   CHANGE_NICKNAME_REQUEST,
   CHANGE_NICKNAME_SUCCESS,
   CHANGE_NICKNAME_FAILURE,
+  LOAD_FOLLOWERS_REQUEST,
+  LOAD_FOLLOWERS_SUCCESS,
+  LOAD_FOLLOWERS_FAILURE,
+  LOAD_FOLLOWINGS_REQUEST,
+  LOAD_FOLLOWINGS_SUCCESS,
+  LOAD_FOLLOWINGS_FAILURE,
+  REMOVE_FOLLOWER_REQUEST,
+  REMOVE_FOLLOWER_SUCCESS,
+  REMOVE_FOLLOWER_FAILURE,
 } from "../reducers/user";
 
 function loadUserAPI() {
@@ -118,19 +127,18 @@ function* signUp(action) {
   }
 }
 
-function followAPI() {
-  return axios.get("/user/signup");
+function followAPI(data) {
+  return axios.patch(`user/${data}/follow`);
 }
 
 function* follow(action) {
   try {
     console.log("saga follow");
-    // const result = yield call(signUpAPI); // call 은 동기고 fork 는 비동기다. 그러니깐 call 을 해야지 위 axios 결과값을 기다린다.
-    yield delay(1000);
+    const result = yield call(followAPI, action.data); // call 은 동기고 fork 는 비동기다. 그러니깐 call 을 해야지 위 axios 결과값을 기다린다.
     yield put({
       // put = dispatch
       type: FOLLOW_SUCCESS,
-      data: action.data,
+      data: result.data,
     });
   } catch (err) {
     console.log(err);
@@ -141,19 +149,18 @@ function* follow(action) {
   }
 }
 
-function unFollowAPI() {
-  return axios.get("/api/signup");
+function unFollowAPI(data) {
+  return axios.delete(`user/${data}/follow`);
 }
 
 function* unFollow(action) {
   try {
     console.log("saga unfollow");
-    // const result = yield call(signUpAPI); // call 은 동기고 fork 는 비동기다. 그러니깐 call 을 해야지 위 axios 결과값을 기다린다.
-    yield delay(1000);
+    const result = yield call(unFollowAPI, action.data); // call 은 동기고 fork 는 비동기다. 그러니깐 call 을 해야지 위 axios 결과값을 기다린다.
     yield put({
       // put = dispatch
       type: UNFOLLOW_SUCCESS,
-      data: action.data,
+      data: result.data,
     });
   } catch (err) {
     console.log(err);
@@ -180,6 +187,69 @@ function* changeNickname(action) {
     console.log(err);
     yield put({
       type: CHANGE_NICKNAME_FAILURE,
+      error: err.response.data,
+    });
+  }
+}
+
+function loadFollowingsAPI(data) {
+  return axios.get("/user/followings", data);
+}
+
+function* loadFollowings(action) {
+  try {
+    const result = yield call(loadFollowingsAPI, action.data);
+    yield put({
+      // put = dispatch
+      type: LOAD_FOLLOWINGS_SUCCESS,
+      data: result.data,
+    });
+  } catch (err) {
+    console.log(err);
+    yield put({
+      type: LOAD_FOLLOWINGS_FAILURE,
+      error: err.response.data,
+    });
+  }
+}
+
+function loadFollowersAPI(data) {
+  return axios.get("/user/followers", data);
+}
+
+function* loadFollowers(action) {
+  try {
+    const result = yield call(loadFollowersAPI, action.data);
+    yield put({
+      // put = dispatch
+      type: LOAD_FOLLOWERS_SUCCESS,
+      data: result.data,
+    });
+  } catch (err) {
+    console.log(err);
+    yield put({
+      type: LOAD_FOLLOWERS_FAILURE,
+      error: err.response.data,
+    });
+  }
+}
+
+function removeFollowerAPI(data) {
+  return axios.delete(`/user/follower/${data}`);
+}
+
+function* removeFollower(action) {
+  try {
+    const result = yield call(removeFollowerAPI, action.data);
+    yield put({
+      // put = dispatch
+      type: REMOVE_FOLLOWER_SUCCESS,
+      data: result.data,
+    });
+  } catch (err) {
+    console.log(err);
+    yield put({
+      type: REMOVE_FOLLOWER_FAILURE,
       error: err.response.data,
     });
   }
@@ -214,6 +284,18 @@ function* watchChangeNickname() {
   yield takeLatest(CHANGE_NICKNAME_REQUEST, changeNickname);
 }
 
+function* watchLoadFollowings() {
+  yield takeLatest(LOAD_FOLLOWINGS_REQUEST, loadFollowings);
+}
+
+function* watchLoadFollowers() {
+  yield takeLatest(LOAD_FOLLOWERS_REQUEST, loadFollowers);
+}
+
+function* watchRemoveFollower() {
+  yield takeLatest(REMOVE_FOLLOWER_REQUEST, removeFollower);
+}
+
 export default function* userSaga() {
   yield all([
     fork(watchLoadUser),
@@ -223,5 +305,8 @@ export default function* userSaga() {
     fork(watchFollow),
     fork(watchUnFollow),
     fork(watchChangeNickname),
+    fork(watchLoadFollowings),
+    fork(watchLoadFollowers),
+    fork(watchRemoveFollower),
   ]);
 }

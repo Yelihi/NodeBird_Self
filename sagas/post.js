@@ -28,6 +28,9 @@ import {
   ADD_COMMENT_REQUEST,
   ADD_COMMENT_SUCCESS,
   ADD_COMMENT_FAILURE,
+  UPLOAD_IMAGES_REQUEST,
+  UPLOAD_IMAGES_SUCCESS,
+  UPLOAD_IMAGES_FAILURE,
 } from "../reducers/post";
 import { ADD_POST_TO_ME, REMOVE_POST_OF_ME } from "../reducers/user";
 
@@ -52,13 +55,7 @@ function* loadPost(action) {
 }
 
 function addPostAPI(data) {
-  return axios.post(
-    "/post",
-    { content: data },
-    {
-      withCredentials: true,
-    }
-  );
+  return axios.post("/post", data);
 }
 
 function* addPost(action) {
@@ -171,6 +168,28 @@ function* addComment(action) {
   }
 }
 
+function uploadImagesAPI(data) {
+  return axios.post(`/post/images`, data); // action.data = imageFormdata 이고 이걸 {name : data} 이런식으로 하면 json 되서 안된다. 그대로 전달하자
+}
+
+function* uploadImages(action) {
+  try {
+    const result = yield call(uploadImagesAPI, action.data);
+    console.log(result); // call 은 동기고 fork 는 비동기다. 그러니깐 call 을 해야지 위 axios 결과값을 기다린다.
+    yield put({
+      // put = dispatch
+      type: UPLOAD_IMAGES_SUCCESS,
+      data: result.data,
+    });
+  } catch (err) {
+    console.error(err);
+    yield put({
+      type: UPLOAD_IMAGES_FAILURE,
+      error: err.response.data,
+    });
+  }
+}
+
 function* watchLoadPost() {
   yield takeLatest(LOAD_POSTS_REQUEST, loadPost);
 }
@@ -195,6 +214,10 @@ function* watchUnlikePost() {
   yield takeLatest(UNLIKE_POST_REQUEST, unlikePost);
 }
 
+function* watchUploadImages() {
+  yield takeLatest(UPLOAD_IMAGES_REQUEST, uploadImages);
+}
+
 export default function* postSaga() {
   yield all([
     fork(watchLoadPost),
@@ -203,5 +226,6 @@ export default function* postSaga() {
     fork(watchRemovePost),
     fork(watchLikePost),
     fork(watchUnlikePost),
+    fork(watchUploadImages),
   ]);
 }

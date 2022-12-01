@@ -27,6 +27,9 @@ export const initialState = {
   uploadImagesLoading: false,
   uploadImagesDone: false,
   uploadImagesError: null,
+  retweetLoading: false,
+  retweetDone: false,
+  retweetError: null,
 };
 
 export const generateDummyPost = (number) =>
@@ -55,6 +58,10 @@ export const generateDummyPost = (number) =>
         },
       ],
     }));
+
+export const RETWEET_REQUEST = "RETWEET_REQUEST";
+export const RETWEET_SUCCESS = "RETWEET_SUCCESS";
+export const RETWEET_FAILURE = "RETWEET_FAILURE";
 
 export const LIKE_POST_REQUEST = "LIKE_POST_REQUEST";
 export const LIKE_POST_SUCCESS = "LIKE_POST_SUCCESS";
@@ -102,6 +109,24 @@ export default (state = initialState, action) => {
     switch (action.type) {
       case REMOVE_IMAGE: {
         draft.imagePaths = draft.imagePaths.filter((v, i) => i !== action.data);
+        break;
+      }
+      case RETWEET_REQUEST: {
+        draft.retweetLoading = true;
+        draft.retweetDone = false;
+        draft.retweetError = null;
+        break;
+      }
+      case RETWEET_SUCCESS: {
+        draft.retweetLoading = false;
+        draft.retweetDone = true;
+        draft.mainPosts.unshift(action.data);
+        break;
+      }
+      case RETWEET_FAILURE: {
+        draft.retweetLoading = false;
+        draft.retweetDone = false;
+        draft.retweetError = action.error;
         break;
       }
       case UPLOAD_IMAGES_REQUEST: {
@@ -169,8 +194,8 @@ export default (state = initialState, action) => {
       case LOAD_POSTS_SUCCESS: {
         draft.loadPostLoading = false;
         draft.loadPostDone = true;
-        draft.mainPosts = action.data.concat(draft.mainPosts);
-        draft.hasMorePost = draft.mainPosts.length < 50; // 개시글이 50개 이상이면 실행 안시키겠다.
+        draft.mainPosts = draft.mainPosts.concat(action.data);
+        draft.hasMorePost = draft.mainPosts.length === 10; // 10개씩을 불러오고 만약 남은 개 8개이면 false 가 된다.
         break;
       }
       case LOAD_POSTS_FAILURE: {

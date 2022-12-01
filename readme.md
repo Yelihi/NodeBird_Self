@@ -51,6 +51,15 @@ SNS 서비스 중 tweeter 에서 사용되고 있는 기능들을 학습하였�
 
 > **ESlint**
 
+```
+npm i eslint -D
+npm i eslint-plugin-import -D
+npm i eslint-plugin-react -D
+npm i eslint-plugin-react-hooks -D
+```
+
+<br />
+
 ```json
 {
   "parser": "babel-eslint", // babel 이 해석해서 최신 문법도 에러 발생 안함
@@ -84,12 +93,19 @@ SNS 서비스 중 tweeter 에서 사용되고 있는 기능들을 학습하였�
 ```
 
 <p align="justify">
-Nav 구현 중 로그인, 회원가입 등 옵션을 선택할 수 있는 프로필 모달창을 만들었어야 했는데, 로그인 버튼을 클릭할 시 다른 모달창의 overlay 속성에 의해 로그인이 눌리지 않고 모달창이 닫히는 현상이 발생하였습니다. 
-<br />처음에는 프로필 모달창(로그인 하기 버튼이있는)의 z-index 값을 더 높혀서 처리하려 했으나 잘 되지 않았고, 방법을 찾아보다가 로그인 버튼을
-누르는 이벤트가 더 상위인 overlay 클릭 이벤트까지 도달하지 않는다면 될 것이라 판단하였습니다.<br /> 상위 이벤트까지 버블링 되는 것을 막는 방법으로 <b>event.stopPropagation()</b>을
-활용하니 로그인 버튼을 클릭해도 모달창이 닫히지 않게되어 해결되었습니다.
+eslintrc. 파일을 생성 후 위와 같이 셋팅을 해줍니다.  
+<br /> ESlint 설정에는 크게 4가지 정도로 구분할 수 있습니다.
 </p>
 
+- 환경(env) : 코드가 돌아가는 환경을 설정합니다.
+- 전역변수(Globals) : 추가로 사용할 전역변수를 정의할 수 있습니다.
+- 규칙(Rules) : 룰의 활성화와 에러들의 수준을 설정합니다.
+- 플러그인(plugin) : 위 규칙이나 환경,설정들을 한데 모아둔 집합같은 느낌입니다.
+  <br />
+
+<p align="justify">
+
+</p>
 <br />
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)

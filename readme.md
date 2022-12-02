@@ -113,6 +113,7 @@ npm i babel-eslint -D
 
 > 엄격한 스타일 적용을 위해 airbnb 패키지로 설정하였고, 꺼두고 싶은 규칙들을 off 로 설정하였습니다. plugin 에는 react-hooks 를 추가 설정하였습니다.
 
+<h3> 기본 개념 </h3>
 <p align="justify">
 eslintrc. 파일을 생성 후 위와 같이 셋팅을 해줍니다.  
 <br /> ESlint 설정에는 크게 4가지 정도로 구분할 수 있습니다.

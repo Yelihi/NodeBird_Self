@@ -50,24 +50,37 @@ SNS 서비스 중 tweeter 에서 사용되고 있는 기능들을 학습하였�
 <br>
 
 > **ESlint**
+> <br />
+
+<p align="justify">
+ESlint 는 Javascript, JSX 의 정적 분석 도구입니다. 코드를 분석해 문법적인 오류나 안티 패턴을 찾아주고 일관된 코드 스타일로 작성하도록 도와줍니다.<br />
+사람들은 저마다의 코딩 스타일이 있기 때문에, 이를 하나의 코딩 스타일로 바꿔주는 역할을 하게 됩니다.
+<br /> ESlint 에는 Shareable Configs 라는 기능이 제공되는데, 이를 이용하면 누군가 만들어 놓은 ESLint 설정을 활용할 수 있습니다. <br />
+아래와 같이 초기 설치를 해주겠습니다.
+</p>
+<br />
 
 ```
 npm i eslint -D
 npm i eslint-plugin-import -D
 npm i eslint-plugin-react -D
 npm i eslint-plugin-react-hooks -D
+npm i eslint-config-airbnb@latest -D
+npm i babel-eslint -D
 ```
 
 <br />
 
-```json
+```js
 {
   "parser": "babel-eslint", // babel 이 해석해서 최신 문법도 에러 발생 안함
+  // "parser" : "@typescript-eslint/parser"
+  // 전반적인 Javascript 언어 옵션을 설정
   "parserOptions": {
-    "ecmaVersion": 2020,
-    "sourceType": "module",
-    "ecmaFeatures": {
-      "jsx": true
+    "ecmaVersion": 2020, // 사용할 ECMAScript 버전을 설정
+    "sourceType": "module", //parser의 export 형식을 설정
+    "ecmaFeatures": { // ECMAScript의 언어 확장 기능을 설정
+      "jsx": true // JSX 사용 여부
     }
   },
   "env": {
@@ -75,19 +88,21 @@ npm i eslint-plugin-react-hooks -D
     "node": true,
     "es6": true
   },
-  "extends": ["airbnb"], // 좀 더 강하게 스타일을 적용한다. 규제가 강함
+  "extends": ["airbnb"], // 패기지를 설치하여 설치한 설정을 적용하고자 할 때 extends 에 넣어준다.
+  // 플러그인 추가
   "plugins": ["import", "react-hooks"],
+  // 사용할 규칙
   "rules": {
     "jsx-a11y/label-has-associated-control": "off",
     "jsx-a11y/anchor-is-valid": "off",
-    "no-console": "off",
-    "no-underscore-dangle": "off",
+    "no-console": "off", // console.log 등의 호출을 설정 (지금은 클라이언트에 여전히 전달 가능). node.js 에서는 error 로 하는게 유리.
+    "no-underscore-dangle": "off", // 식별자에 붙은 _를 허용할지 안할지를 설정한다. 중요한건 식별자에 매달린!
     "react/forbid-prop-types": "off",
     "react/jsx-filename-extension": "off",
     "react/jsx-one-expression-per-line": "off",
-    "object-curly-newline": "off",
-    "linebreak-style": "off",
-    "no-param-reassign": "off"
+    "object-curly-newline": "off", // {} 내 줄바꿈이 필수인지 아닌지에 대한 옵션 처리. 지금은 그냥 꺼버렸다.
+    "linebreak-style": "off", // 일관된 줄 바꿈 스타일 적용 설정 ('unix', 'window')
+    "no-param-reassign": "off" // 전달된 매개변수에 값을 재할당 하는것을 막아주는 설정
   }
 }
 ```
@@ -104,8 +119,12 @@ eslintrc. 파일을 생성 후 위와 같이 셋팅을 해줍니다.
   <br />
 
 <p align="justify">
-
+규칙의 경우 규칙 이름과 이에 대한 설정값으로 'off: 끔', 'warn: 경고', 'error: 오류' 3가지로 나뉩니다. <br />
+만일 사용하려는 extends 와 plugin 에서 설정해둔 규칙을 수정하고 싶다면, rules 에서 직접 수정하면 됩니다.
 </p>
 <br />
+
+- 참고로 prettier 와 설정 충돌을 막고 싶다면, `eslint-config-prettier`
+- html 역시 eslint 로 문법 설정을 하고 싶다면, `eslint-plugin-html`
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)

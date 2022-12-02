@@ -54,8 +54,7 @@ SNS 서비스 중 tweeter 에서 사용되고 있는 기능들을 학습하였�
 <div markdown="1">
 <br />
 
-> **ESLint**
-> <br />
+> **ESLint** > <br />
 
 <p align="justify">
 ESlint 는 Javascript, JSX 의 정적 분석 도구입니다. 코드를 분석해 문법적인 오류나 안티 패턴을 찾아주고 일관된 코드 스타일로 작성하도록 도와줍니다.<br />
@@ -111,6 +110,8 @@ npm i babel-eslint -D
   }
 }
 ```
+
+> 엄격한 스타일 적용을 위해 airbnb 패키지로 설정하였고, 꺼두고 싶은 규칙들을 off 로 설정하였습니다. plugin 에는 react-hooks 를 추가 설정하였습니다.
 
 <p align="justify">
 eslintrc. 파일을 생성 후 위와 같이 셋팅을 해줍니다.  

@@ -50,13 +50,12 @@ SNS 서비스 중 tweeter 에서 사용되고 있는 기능들을 학습하였�
 <br>
 
 <details>
-<summary>
-
-> **ESLint**
-
-</summary>
+<summary><b>ESLint 초기 설정</b></summary>
 <div markdown="1">
 <br />
+
+> **ESLint**
+> <br />
 
 <p align="justify">
 ESlint 는 Javascript, JSX 의 정적 분석 도구입니다. 코드를 분석해 문법적인 오류나 안티 패턴을 찾아주고 일관된 코드 스타일로 작성하도록 도와줍니다.<br />

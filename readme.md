@@ -49,8 +49,11 @@ SNS 서비스 중 tweeter 에서 사용되고 있는 기능들을 학습하였�
 <h2 align="center" id="next">:large_blue_diamond: Setting</h2>
 <br>
 
-> **ESlint**
-> <br />
+<details>
+<summary>ESLint</summary>
+<div markdown="1">
+
+> **ESlint** > <br />
 
 <p align="justify">
 ESlint 는 Javascript, JSX 의 정적 분석 도구입니다. 코드를 분석해 문법적인 오류나 안티 패턴을 찾아주고 일관된 코드 스타일로 작성하도록 도와줍니다.<br />
@@ -126,5 +129,8 @@ eslintrc. 파일을 생성 후 위와 같이 셋팅을 해줍니다.
 
 - 참고로 prettier 와 설정 충돌을 막고 싶다면, `eslint-config-prettier`
 - html 역시 eslint 로 문법 설정을 하고 싶다면, `eslint-plugin-html`
+
+</div>
+</details>
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)

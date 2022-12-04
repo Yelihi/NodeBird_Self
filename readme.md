@@ -142,85 +142,24 @@ eslintrc. 파일을 생성 후 위와 같이 셋팅을 해줍니다.
 <div markdown="1">
 <br />
 
-> **ESLint**
+> **Next.js@9**
 
 <p align="justify">
-ESlint 는 Javascript, JSX 의 정적 분석 도구입니다. 코드를 분석해 문법적인 오류나 안티 패턴을 찾아주고 일관된 코드 스타일로 작성하도록 도와줍니다.<br />
-사람들은 저마다의 코딩 스타일이 있기 때문에, 이를 하나의 코딩 스타일로 바꿔주는 역할을 하게 됩니다.
-<br /> ESlint 에는 Shareable Configs 라는 기능이 제공되는데, 이를 이용하면 누군가 만들어 놓은 ESLint 설정을 활용할 수 있습니다. <br />
-아래와 같이 초기 설치를 해주겠습니다.
+Next.js는 리엑트로 구현 시 CSR 방식으로 인한 SEO(검색 최적화) 문제점을 해소시켜주는 리엑트 프레임워크입니다.<br />
+Next.js 를 활용하여 SSR(Server Side Rendering) 구현이 가능해집니다. 
+<br />CSR 과 SSR 에 관해서는 아래 링크를 참고해주세요<br />
 </p>
 <br />
 
+![블로그 참고](https://rock7246.tistory.com/23)
+
 ```
-npm i eslint -D
-npm i eslint-plugin-import -D
-npm i eslint-plugin-react -D
-npm i eslint-plugin-react-hooks -D
-npm i eslint-config-airbnb@latest -D
-npm i babel-eslint -D
+npm i next@9
 ```
 
 <br />
 
-```js
-{
-  "parser": "babel-eslint", // babel 이 해석해서 최신 문법도 에러 발생 안함
-  // "parser" : "@typescript-eslint/parser"
-  // 전반적인 Javascript 언어 옵션을 설정
-  "parserOptions": {
-    "ecmaVersion": 2020, // 사용할 ECMAScript 버전을 설정
-    "sourceType": "module", //parser의 export 형식을 설정
-    "ecmaFeatures": { // ECMAScript의 언어 확장 기능을 설정
-      "jsx": true // JSX 사용 여부
-    }
-  },
-  "env": {
-    "browser": true,
-    "node": true,
-    "es6": true
-  },
-  "extends": ["airbnb"], // 패기지를 설치하여 설치한 설정을 적용하고자 할 때 extends 에 넣어준다.
-  // 플러그인 추가
-  "plugins": ["import", "react-hooks"],
-  // 사용할 규칙
-  "rules": {
-    "jsx-a11y/label-has-associated-control": "off",
-    "jsx-a11y/anchor-is-valid": "off",
-    "no-console": "off", // console.log 등의 호출을 설정 (지금은 클라이언트에 여전히 전달 가능). node.js 에서는 error 로 하는게 유리.
-    "no-underscore-dangle": "off", // 식별자에 붙은 _를 허용할지 안할지를 설정한다. 중요한건 식별자에 매달린!
-    "react/forbid-prop-types": "off",
-    "react/jsx-filename-extension": "off",
-    "react/jsx-one-expression-per-line": "off",
-    "object-curly-newline": "off", // {} 내 줄바꿈이 필수인지 아닌지에 대한 옵션 처리. 지금은 그냥 꺼버렸다.
-    "linebreak-style": "off", // 일관된 줄 바꿈 스타일 적용 설정 ('unix', 'window')
-    "no-param-reassign": "off" // 전달된 매개변수에 값을 재할당 하는것을 막아주는 설정
-  }
-}
-```
-
-> 엄격한 스타일 적용을 위해 airbnb 패키지로 설정하였고, 꺼두고 싶은 규칙들을 off 로 설정하였습니다. plugin 에는 react-hooks 를 추가 설정하였습니다.
-
-<h3> 기본 개념 </h3>
-<p align="justify">
-eslintrc. 파일을 생성 후 위와 같이 셋팅을 해줍니다.  
-<br /> ESlint 설정에는 크게 4가지 정도로 구분할 수 있습니다.
-</p>
-
-- 환경(env) : 코드가 돌아가는 환경을 설정합니다.
-- 전역변수(Globals) : 추가로 사용할 전역변수를 정의할 수 있습니다.
-- 규칙(Rules) : 룰의 활성화와 에러들의 수준을 설정합니다.
-- 플러그인(plugin) : 위 규칙이나 환경,설정들을 한데 모아둔 집합같은 느낌입니다.
-  <br />
-
-<p align="justify">
-규칙의 경우 규칙 이름과 이에 대한 설정값으로 'off: 끔', 'warn: 경고', 'error: 오류' 3가지로 나뉩니다. <br />
-만일 사용하려는 extends 와 plugin 에서 설정해둔 규칙을 수정하고 싶다면, rules 에서 직접 수정하면 됩니다.
-</p>
-<br />
-
-- 참고로 prettier 와 설정 충돌을 막고 싶다면, `eslint-config-prettier`
-- html 역시 eslint 로 문법 설정을 하고 싶다면, `eslint-plugin-html`
+> 추후 내용 추가 예정
 
 </div>
 </details>

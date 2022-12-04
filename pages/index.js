@@ -1,5 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
+import { END } from "redux-saga";
 
 import AppLayout from "../components/AppLayout";
 import PostForm from "../components/PostForm";
@@ -8,11 +9,11 @@ import PostCard from "../components/PostCard";
 import { LOAD_POSTS_REQUEST } from "../reducers/post";
 import { LOAD_USER_REQUEST } from "../reducers/user";
 
+import wrapper from "../store/configureStore";
+
 const Home = () => {
   const { me } = useSelector((state) => state.user);
-  const { mainPosts, hasMorePost, loadPostLoading, retweetError } = useSelector(
-    (state) => state.post
-  );
+  const { mainPosts, hasMorePost, loadPostLoading, retweetError } = useSelector((state) => state.post);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -22,22 +23,8 @@ const Home = () => {
   }, [retweetError]);
 
   useEffect(() => {
-    dispatch({
-      type: LOAD_USER_REQUEST,
-    });
-    dispatch({
-      type: LOAD_POSTS_REQUEST,
-    });
-  }, []); // 더 불러오려면 스크롤을 내려서 로딩하기
-
-  useEffect(() => {
     function onScroll() {
-      if (
-        window.scrollY >
-        document.documentElement.scrollHeight -
-          document.documentElement.clientHeight -
-          1200
-      ) {
+      if (window.scrollY > document.documentElement.scrollHeight - document.documentElement.clientHeight - 1200) {
         if (hasMorePost && !loadPostLoading) {
           const lastId = mainPosts[mainPosts.length - 1]?.id;
           dispatch({
@@ -62,5 +49,20 @@ const Home = () => {
     </AppLayout>
   );
 };
+
+// 이게 있으면 화면그리기 전에 먼저 실행을 함.
+export const getServerSideProps = wrapper.getServerSideProps(async (context) => {
+  console.log(context);
+  context.store.dispatch({
+    type: LOAD_USER_REQUEST,
+  });
+  context.store.dispatch({
+    type: LOAD_POSTS_REQUEST,
+  });
+  // success 까지 기다리기 위해서 하는 조치
+  context.store.dispatch(END);
+  //store.sagaTask 는 기존에 configStore.js 에서 처리함
+  await context.store.sagaTask.toPromise();
+});
 
 export default Home;

@@ -553,4 +553,263 @@ export default wrapper;
 </div>
 </details>
 
+<details>
+<summary><b>Generator 이해와 Redux-saga</b></summary>
+<div markdown="1">
+<br />
+
+> **generator**
+
+<p align="justify">
+Generator함수는 중단점이 있는 함수라고 생각하면 됩니다.<br /><br />
+자바스크립트에서 함수를 실행하게 되면 코드 전부가 실행이 되게 되는데, 제너레이터함수는 yield 라는 일정 중단점에서 멈추게 됩니다. 딱 여기까지만 실행하고 이후 코드를 실행시키고 싶으면 next()를 통해 호출하게 되면 가능합니다. 
+</p>
+
+```js
+const gen = function* () {
+  console.log(1);
+  yield;
+  console.log(2);
+  yield;
+  console.log(3);
+  yield 4;
+};
+
+const generator = gen();
+
+generator; // gen {<suspended>}
+
+generator.next();
+// 1
+// {value: undefined, done: false}
+
+generator.next();
+// 2
+// {value: undefined, done: false}
+
+generator.next();
+// 3
+// {value: 4, done: false}
+
+generator.next();
+// {value: undefined, done: true}
+```
+
+- yield 부분에서 계속해서 중단이 이뤄짐을 확인할 수 있습니다.
+
+```js
+const gen = function* (){
+	while(true){
+		yield '무한';
+	}
+}
+
+const g = gen();
+
+g.next()
+// {value: '무한' , done: false}
+// 이러한 객체 형식을 yield 가 반환합니다.
+
+g.next()
+// {value: '무한' , done: false}
+
+g.next()
+// {value: '무한' , done: false}
+
+g.next()
+// {value: '무한' , done: false}
+
+g.next()
+// {value: '무한' , done: false}
+
+g.next()
+// {value: '무한' , done: false}
+
+....
+```
+
+<p align="justify">
+원래 자바스크립트에서 while(true) 의 경우 조건 후 break 를 걸어두지 않는다면, 무한 루프에 빠지게 되는데, 제너레이터는 실행 개념이 다릅니다. 왜냐하면 yield 에서 멈추기 때문에 next() 를 통해서 위 코드처럼 계속해서 호출을 할 수 있습니다. <br /><br />
+이러한 특성은 마치 이벤트리스너와 비슷한데, 어떠한 특정 조건(클릭같은)에 g.next() 가 호출이 된다면 이벤트리스너와 같다고 할 수 있겠습니다.<br /><br />
+제너레이터 함수의 경우 Caller 와 Calle 로 나눠서 생각해볼 수 있습니다. 앞에서 함수 호출 시 yield 에서 반환 객체가 나온다고 하였는데, 이러한 제너레이터 함수를 계속 next해주는 역할을 담당하는 것이 Caller 입니다. Caller 는 제너레이터함수가 반환한 Calle(객체, 제너레이터)를 가지고 로직을 수행하게 됩니다. 게속 함수를 호출할지 아니면 중단할지 등등을 결정할 수 있게 됩니다.
+</p>
+
+<br />
+
+> **saga**
+
+<p align="justify">
+saga는 위에서 살펴본 제너레이터함수의 특징을 활용합니다. <b>Redux-saga 에서 saga 가 바로 제너레이터함수 입니다.</b> 그렇다면 이러한 함수를 호출하는 역할을 하는 Caller 가 필요한데, 이 역할을 미들웨어에서 수행하게 됩니다. <b>미들웨어는 Saga(제너레이터함수)를 끊임없이 동작시킵니다.</b> 따라서 우선 미들웨어 설정이 필요합니다. 
+</p>
+
+```
+npm i redux-saga
+```
+
+- configStore.js 에서 미들웨어 설정을 해줍니다.
+
+```js
+import createSagaMiddleware from "redux-saga";
+
+// saga 폴더에서 saga(제너레이터함수)가 담긴 rootSaga 를 가져옵니다.
+import rootSaga from "../sagas";
+
+const configureStore = (context) => {
+  // Caller 역할을 할 미들웨어를 생성합니다.
+  const sagaMiddleware = createSagaMiddleware();
+  // 미들웨어 안에 넣어줍니다.
+  const middlewares = [sagaMiddleware];
+  const enhancer = process.env.NODE_ENV === "production" ? compose(applyMiddleware(...middlewares)) : composeWithDevTools(applyMiddleware(...middlewares));
+  const store = createStore(reducer, enhancer);
+  // 중요한 부분인데 아까도 설명하였듯이 Caller 역할을 하기에
+  // 계속해서 미들웨어는 돌아가야 합니다.
+  // 그래서 sagaMiddleware.run 을 통해서 미들웨어를 돌려줍니다.
+  // redux-saga 는 미들웨어에 우리의 saga(rootSaga)를 등록하고 수행합니다.
+  store.sagaTask = sagaMiddleware.run(rootSaga);
+  return store;
+};
+```
+
+- 이를 통해 미들웨어는 saga를 계속해서 실행시킬 것입니다.
+- 그리고 saga에서 오는 제너레이터를(명령) 실행해주는 역할을 하게 됩니다.
+
+<p align="justify">
+조금의 이해를 돕기 위해, redux-thunk 와 비교를 하게 되면, redux-thunk 에서 비동기를 처리하는 과정의 예시 코드를 살펴보겠습니다.
+</p>
+
+```js
+function asyncIncrement() {
+  return async (dispatch) => {
+    await delay(1000);
+    dispatch({ type: "INCREMENT" });
+  };
+}
+```
+
+<p align="justify">
+위 코드에서 await 를 통해 실제로 1초의 딜레이 이후 dispatch 를 실행하게 됩니다. 즉 비동기적인 처리가 함수 내부에 들어가 있습니다. 직접 함수에서 처리하는 거죠.
+</p>
+
+```js
+function* asyncIncrement() {
+  // Saga는 아래와 같이 간단한 형태의 명령만 yield 합니다.
+  yield call(delay, 1000); // {CALL: {fn: delay, args: [1000]}}
+  yield put({ type: "INCREMENT" }); //  {PUT: {type:'INCREMENT'}}
+}
+```
+
+<p align="justify">
+그와 달리 saga 에서 yield 는 이펙트생성자(call, put) 을 통해서 제너레이터(객체, 이펙트) 만 생성하여 이를 미들웨어에 전달합니다. <b>그러니깐 마치 '이거 1초 딜레이 하시구', '이 타입을 dispatch 하세요' 라고 미들웨어에게 명령을 하는 것입니다. 제너레이터함수 에서는 직접 비동기 처리를 하지 않는 것입니다. </b> <br /><br />
+이러한 방식의 장점은 실제 위 코드를 테스트하는 과정에서 얻을 수 있습니다. 
+</p>
+
+```js
+// saga 가 전달하는 명령이, 실제 의도하고자 한 명령과 일치하는지만 확인하면 됩니다. 1초를 기다릴 이유가 없습니다.
+
+const gen = asyncIncrement();
+expect(gen.next().value).toEqual(call(delay, 1000));
+expect(gen.next().value).toEqual(put({ type: "INCREMENT" }));
+```
+
+<br />
+
+> **effect**
+
+<p align="justify">
+앞에서 이펙트 생성자가 이펙트를 만든다고 하였는데, 이펙트는 제너레이터 라고 생각하면 됩니다. 이펙트는 객체일 뿐입니다. 어떤 사람이 '나는 밥을 먹을꺼야' 라고 말을 했다고 쳐도, 실제로 이 말은 그냥 말일 뿐입니다. 밥을 먹은것이 아니죠. <br /><br /> 마찮가지로 이펙트는 그저 객체일 뿐, 이 객체를 참조하여 직접 객체의 정보대로 실행하는것은 미들웨어가 하게 됩니다. 그리고 그 결과를 다시 제너레이터 함수(saga) 에 전달하는 것입니다. 그러면 다시 saga 는 미들웨어에 그 다음 명령을 전달하고, 미들웨어는 실행하고... 이렇게 계속해서 진행이 되게 됩니다.<br /><br /> saga 는 이러한 이펙트 생성자가 다양하게 존재합니다. take, call, delay, takeLatest, put 등등 다양한 명령을 전달할 수 있으니, 이는 공식 API 를 참고하면 될 것 같습니다.
+</p>
+
+[공식 API](https://redux-saga.js.org/docs/api/#effect-creators)
+<br />
+
+> **rootSaga 셋팅하기**
+
+<p align="justify">
+예시를 통해서 셋팅의 과정을 살펴보겠습니다.
+</p>
+
+```js
+import { all, call, fork, put, take, takeLatest } from "redux-saga/effects";
+import axios from "axios";
+
+function logInAPI(data) {
+  // 주의할 점은 여긴 일반함수입니다.
+  return axios.post("/api/login", data);
+}
+
+function* logIn(action) {
+  // post 해줘야 하니 action.data 를 넘깁니다.
+  try {
+    yield put({
+      // yield를 통해 제너레이터를 미들웨어에 전달합니다.
+      type: "LOG_IN_REQUEST",
+    });
+    const result = yield call(logInAPI, action.data); // call 은 동기고 fork 는 비동기적으로 작동합니다. 그러니깐 call 을 해야지 위 axios 결과값을 기다립니다.
+    yield put({
+      // put = dispatch
+      type: "LOG_IN_SCCCESS",
+      data: result.data,
+    });
+  } catch (err) {
+    yield put({
+      type: "LOG_IN_FAILURE",
+      data: err.response.data,
+    });
+  }
+}
+
+function* watchLogIn() {
+  // 이벤트리스너 같은느낌입니다.
+  yield takeLatest("LOG_IN_REQUEST", logIn); // login action 실행될 때까지 기다리라고 명령을 미들웨어에 전달합니다.
+}
+
+function* watchLogOut() {
+  yield takeLatest("LOG_OUT_REQUEST", logOut);
+}
+
+export default function* rootSaga() {
+  yield all([fork(watchLogIn), fork(watchLogOut)]); // 마치 이벤트 리스너를 등록해준다 생각합시다.
+}
+```
+
+- saga 폴더에 rootSaga 를 만들어주고 재너레이터 함수를 생성합니다.
+- rootSaga 가 실행되면 위 2가지 함수가 백그라운드에 이벤트리스너가 존재하듯 Type action 을 기다립니다.
+- action 이 들어오게 되면, 위 login 함수가 실행이 됩니다.(logout 은 생략하였습니다..)
+- 서버의 결과값에 따라 try, catch 를 통해 2가지 형식의 type을 구분하여 미들웨어에게 명령을 내립니다.
+
+<p align="justify">
+여기서 이펙트생성자에 대해 좀 더 살펴보겠습니다. watchlogin 에서 takeLeast 이펙트 생성자를 사용한것은 이유가 있습니다.<br /><br />
+예를 들어서 로그인 요청을 통해 한번 로그인이 실행될 때, 만약 이펙트생성자를 take 로 하게 되면, action 을 받음과 동시에 watchlogin 은 사라지게 됩니다. 이벤트리스너처럼 계속 남아있지 않습니다. while(true) 루프를 통해서 처리해도 되지만, saga 는 여러가지 이펙트생성자를 제공하고, 이를 통해 takeLeast 를 써서 계속 남겨두도록 명령하는것이 가능합니다. 또한, takeLaest 의 경우 debounce 의 성질을 가지고 있습니다. 만일 요청버튼을 순간 연속으로 눌렀을 경우 마지막 클릭부분만 요청이 가도록 해줍니다.
+</p>
+
+</div>
+</details>
+
+<details>
+<summary><b>shortId, faker</b></summary>
+<div markdown="1">
+<br />
+
+> **shortId**
+
+<p align="justify">
+Next.js는 리엑트로 구현 시 CSR 방식으로 인한 SEO(검색 최적화) 문제점을 해소시켜주는 리엑트 프레임워크입니다.<br />
+Next.js 를 활용하여 SSR(Server Side Rendering) 구현이 가능해집니다. 
+<br />CSR 과 SSR 에 관해서는 아래 링크를 참고해주세요<br />
+</p>
+<br />
+
+[블로그 참고](https://rock7246.tistory.com/23)
+
+```
+npm i next@9
+```
+
+<br />
+
+> 추후 내용 추가 예정
+
+</div>
+</details>
+
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)

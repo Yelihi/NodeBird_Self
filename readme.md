@@ -327,4 +327,229 @@ export default (initialValue = null) => {
 </div>
 </details>
 
+<details>
+<summary><b>Redux</b></summary>
+<div markdown="1">
+<br />
+
+> **왜 Redux를 사용해야할까**
+
+<p align="justify">
+리엑트의 장점은 화면 랜더링을 컴포넌트의 재사용을 활용하여 좀 더 효율적으로 할 수 있다는 점에 있습니다. 이 때 각 컴포넌트에는 상태값들이 존재할 수 있고, 이러한 상태값의 변화가 곧 화면 랜더링의 업데이트로 이어지곤 합니다. 그리고 이러한 상태값 중 일부는 여러 컴포넌트에서 동시에 사용되어야 하는 경우가 발생합니다.<br />
+예를 들자면 만약 사용자의 nickname 이 변경되었다고 할 때, 이 nickname 을 사용하는 컴포넌트가 여러개일 수 있고, 실제로 회원정보창, 장바구니창, 게시글, 댓글 등등에서 활용되곤 합니다. 만일 이러한 상태값들이 많아지게 된다면, 단순 props 로 상태값을 전달하는 방식에는 한계점이 느껴지게 되고, 이런 상태값을 저장할 수 있는 공간이 한 공간 이상은 필요하게 됩니다.
+<br />이러한 의미에서 Redux와 같은 상태관리 라이브러리가 필요하게 됩니다.<br />
+</p>
+<br />
+
+```
+npm i next-redux-wrapper
+npm i redux
+```
+
+- next 에서는 추가로 next-redux-wrapper 가 필요합니다.
+- store 폴더를 생성해서, configureStore 를 만듭니다.
+
+```js
+import { createWrapper } from "next-redux-wrapper";
+
+import reducer from "../reducers";
+
+// store 를 먼저 만들어 주어야 합니다.
+const configureStore = () => {
+  // store 생성하기
+  const store = createStore(reducer);
+  return store;
+};
+
+const wrapper = createWrapper(configureStore, {
+  debug: process.env.NODE_ENV === "development,",
+}); // 자세한 설명이 나와서 이걸 설정해주자.
+
+export default wrapper;
+```
+
+- 이후 redux 의 상태값을 사용하고자 하는 페이지(컴포넌트)에 가서 아래처럼 설정을 해주면 됩니다.
+
+```js
+import React from "react";
+import Head from "next/head";
+import PropTypes from "prop-types";
+import "antd/dist/antd.css";
+
+import wrapper from "../store/configureStore";
+
+const NodeBird = ({ Component }) => {
+  return (
+    <>
+      <Head>
+        <title>NodeBird</title>
+      </Head>
+      <Component />
+    </>
+  );
+};
+
+NodeBird.propTypes = {
+  Component: PropTypes.elementType.isRequired,
+};
+
+// 컴포넌트를 wrapper 로 감싸주면 됩니다.
+export default wrapper.withRedux(NodeBird);
+```
+
+- 이렇게 \_app.js 에 설정해주게 되면, 나머지 모든 컴포넌트에 관해서 redux store 을 활용할 수 있게 됩니다.
+  <br />
+
+> **Redux 는 어떻게 동작하는가**
+
+<p align="justify">
+리덕스는 중앙 저장소에서 데이터를 저장하는데, 이 데이터를 수정하려면 action 을 통해서 바꿀 수 있습니다. 이 action 을 dispatch 하면 중앙저장소가 바뀌게 됩니다. <br />
+물론 diapatch 만 한다고 바뀌는것은 아닙니다. 특정 타입인 action 을 받았을 때, 이 타입에 따른 행동 요건을 switch 문으로 reducer 에서 관리하게 됩니다. 
+<br />
+문제는 각각의 action 에 대한 reducer 의 코드량이 엄청 많아지게 된다는 점인데, 진행됨에 따라 action 들의 기록들이 남게 되어, 뒤로가기도 가능하고, 어떤식으로 상태가 관리되는지 보기 수월하다는 장점이 있습니다.
+<br /> 실제로 한번 구현해보겠습니다.
+</p>
+
+```js
+// 초기 상태값입니다. 여기에 이제 데이터가 추가되거나 삭제됩니다.
+const initialState = {
+  user: {
+    isLoggedIn: false,
+    user: null,
+    signUpData: {},
+    loginData: {},
+  },
+  post: {
+    mainPosts: [],
+  },
+};
+
+// 이전상태, 액션 => 다음상태 를 만드는 함수
+const rootReducer = (state = initialState, action) => {
+  switch (action.type) {
+    case "LOG_IN":
+      return {
+        ...state,
+        user: {
+          ...state.user,
+          isLoggedIn: true,
+          user: action.data,
+        },
+      };
+    case "LOG_OUT":
+      return {
+        ...state,
+        user: {
+          ...state.user,
+          isLoggedIn: false,
+          user: null,
+        },
+      };
+    default:
+      return {
+        ...state,
+      };
+  }
+};
+
+export default rootReducer;
+```
+
+- 위 코드는 login,logout 에 대한 reducer store 입니다.
+- 불변성을 지켜주어야 하기에 스프레드 연산자를 통해 얇은 복사를 하고 있습니다.
+- 해당 컴포넌트에서 action 을 건내주면 rootReducer 는 이 type 에 따른 state 값을 변화시켜줍니다.
+- reducer 에 action 을 보내는 함수는 밑과 같습니다.
+
+```js
+export const loginAction = (data) => {
+  return {
+    type: "LOG_IN", // reducer 는 이 type 을 통해서 취할 행동을 결정합니다.
+    data: data, // 필요한 data 를 같이 전달하게 됩니다.
+  };
+};
+
+export const logoutAction = () => {
+  return {
+    type: "LOG_OUT",
+  };
+};
+```
+
+> 위 함수는 store 에서 정의한 함수입니다. 컴포넌트에서 직접 dispatch를 해도되지만, action 함수를 미리 만들어서 dipatch 에서 함수를 넣어 전달해도 됩니다. 사용자의 편의에 따라 합시다.
+
+- reducer 는 상태값을 변화시키고, 이 상태값을 컴포넌트는 그대로 가져와서 사용하면 됩니다.
+
+```js
+// useSelector 를 통해서 상태값을 가져올 수 있습니다.
+// 컴포넌트 어디던지 가능합니다.
+import { useSelector } from "react-redux";
+
+const AppLayout = ({ children }) => {
+  const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
+  // 이런식으로 상태값을 가져와 밑에 그대로 활용하면 됩니다.
+
+	return (
+	....
+
+
+	<Col xs={24} md={6}>
+          {isLoggedIn ? <UserProfile /> : <LoginForm />}
+        </Col>
+```
+
+- dispatch 보내는 방법은 역시나 간단합니다.
+- useDispatch 를 통해서 dispatch를 정의하고 그대로 사용하면 됩니다.
+
+```js
+import { useDispatch } from "react-redux";
+import { loginAction } from "../reducers";
+
+const LoginForm = () => {
+  const dispatch = useDispatch();
+
+	const onSubmitForm = useCallback(() => {
+    // id, password 를 데이터로 전달합니다.
+    dispatch(loginAction({ id, password }));
+  }, [id, password]);
+```
+
+<br />
+
+> **Redux Devtools**
+
+<p align='justify'>크롬에서 확장프로그램을 설치가 가능합니다. 설정할 때는 개발자 모드에서만 작동하도록 설정하는것이 좋습니다. 크롬과 npm 내 둘다 설치가 되어있어야 사용 가능합니다.</p>
+
+```
+npm i redux-devtools-extension
+npm i @redux-devtools/extension
+```
+
+<p align='justify'>configureStore.js 에 아래와같이 설정을 해줍시다.</p>
+
+```js
+import { applyMiddleware, createStore, compose } from "redux";
+import { createWrapper } from "next-redux-wrapper";
+import { composeWithDevTools } from "redux-devtools-extension";
+
+import reducer from "../reducers";
+
+const configureStore = (context) => {
+  console.log(context);
+  const middlewares = [];
+  // 개발자 모두에 한해서 Devtools 를 사용하겠다는 것입니다.
+  const enhancer = process.env.NODE_ENV === "production" ? compose(applyMiddleware(...middlewares)) : composeWithDevTools(applyMiddleware(...middlewares));
+  const store = createStore(reducer, enhancer);
+  return store;
+};
+
+const wrapper = createWrapper(configureStore, {
+  debug: process.env.NODE_ENV === "development",
+});
+
+export default wrapper;
+```
+
+</div>
+</details>
+
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)

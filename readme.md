@@ -793,21 +793,102 @@ export default function* rootSaga() {
 > **shortId**
 
 <p align="justify">
-Next.js는 리엑트로 구현 시 CSR 방식으로 인한 SEO(검색 최적화) 문제점을 해소시켜주는 리엑트 프레임워크입니다.<br />
-Next.js 를 활용하여 SSR(Server Side Rendering) 구현이 가능해집니다. 
-<br />CSR 과 SSR 에 관해서는 아래 링크를 참고해주세요<br />
+더미 데이터를 만들때 id 를 자동적으로 생성해주는 라이브러리 입니다.<br />
+id 값은 리엑트에서 리스트 구조에 고유한 key 값이 존재해야한다는 점에서 중요한데, 이를 간단하게 고유한 id 를 만들어 주기 때문에 편리합니다.
+<br />아래처럼 설치합시다<br />
 </p>
 <br />
 
-[블로그 참고](https://rock7246.tistory.com/23)
-
 ```
-npm i next@9
+npm i shortId
+```
+
+- 더미데이터 예시입니다.
+
+```js
+Images: [
+        {
+          id: shortId.generate(),
+          src: "https://bookthumb-phinf.pstatic.net/cover/137/995/13799585.jpg?udate=20180726",
+        },
+        {
+          id: shortId.generate(),
+          src: "https://gimg.gilbut.co.kr/book/BN001958/rn_view_BN001958.jpg",
+        },
+        {
+          id: shortId.generate(),
+          src: "https://gimg.gilbut.co.kr/book/BN001998/rn_view_BN001998.jpg",
+        },
+      ],
+      Comments: [
+        {
+          id: shortId.generate(),
+          User: {
+            id: shortId.generate(),
+            nickname: "nero",
+          },
+          content: "우와 개정판이 나왔군요~",
+        },
+        {
+          id: shortId.generate(), // 이렇게 id 가 있어야 한다.
+          User: {
+            id: shortId.generate(),
+            nickname: "hero",
+          },
+          content: "얼른 사고싶어요~",
+        },
 ```
 
 <br />
 
-> 추후 내용 추가 예정
+> **faker**
+
+<p align="justify">
+역시나 더미데이터를 생성하는 데 유리한 라이브러리 입니다.<br />
+다만 이 라이브러리가 업데이트 부분에서 좀 문제가 있어서, 버전을 @5로 지정해서 사용하는것을 추천합니다. (혹은 @faker-js/faker 를 사용합시다)
+<br />아래처럼 설치합시다<br />
+</p>
+<br />
+```
+npm i faker@5
+npm i @faker-js/faker
+```
+
+- 사용법은 공식 홈페이지를 활용해서 필요한 부분들을 체워주면 됩니다.
+
+```js
+initialState.mainPosts = initialState.mainPosts.concat(
+  Array(20)
+    .fill()
+    .map(() => ({
+      id: shortId.generate(),
+      User: {
+        id: shortId.generate(),
+        nickname: faker.internet.userName(),
+      },
+      content: faker.lorem.paragraph(),
+      Images: [
+        {
+          src: faker.image.cats(),
+        },
+      ],
+      Comments: [
+        {
+          id: shortId.generate(),
+          User: {
+            id: shortId.generate(),
+            nickname: faker.internet.userName(),
+          },
+          content: faker.word.adjective(),
+        },
+      ],
+    }))
+);
+```
+
+<br />
+
+[@faker-js/faker](https://www.npmjs.com/package/@faker-js/faker)
 
 </div>
 </details>

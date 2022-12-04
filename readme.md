@@ -159,7 +159,68 @@ npm i next@9
 
 <br />
 
-> 추후 내용 추가 예정
+> **getServerSideProps**
+
+<p align="justify">
+처음 화면이 렌더링 될 때, 기존 CSR 방식과 달리 SSR 의 경우 서버에서 데이터까지 함께 받아오기 때문에 순차적으로 화면이 나타난다기 보단, 첫 화면에 같이 데이터까지 렌더링 되도록 설정할 수 있습니다. <br />
+우선 가장 먼저 첫 화면에서(Home) 데이터를 받아오는 dispatch 부분을 수정해주어야 합니다.
+</p>
+
+```js
+import { END } from "redux-saga";
+// 생략
+
+import wrapper from "../store/configureStore";
+
+const Home = () => {
+  // 생략
+};
+
+// 이게 있으면 화면그리기 전에 먼저 실행을 합니다.
+export const getServerSideProps = wrapper.getServerSideProps(async (context) => {
+  console.log(context);
+  context.store.dispatch({
+    type: LOAD_USER_REQUEST,
+  });
+  context.store.dispatch({
+    type: LOAD_POSTS_REQUEST,
+  });
+  // success 까지 기다리기 위해서 하는 조치
+  context.store.dispatch(END);
+  //store.sagaTask 는 기존에 configStore.js 에서 처리합니다
+  await context.store.sagaTask.toPromise();
+});
+
+export default Home;
+```
+
+- 위 코드처럼 처리를 해주면 됩니다. 참고로 context.store.dispatch(END)를 해주지 않으면 요청이 진행된 상태에서 화면을 랜더링 하게 되어, 데이터가 들어오질 않습니다.
+- saga가 실행될 수 있도록 await 를 통해 처리해줍니다.
+
+<p align="justify">
+다만 처음 데이터가 들어올 때, reducers/index 의 rootReducer 의 구조를 변경해주어야 합니다.
+</p>
+
+```js
+const rootReducer = (state, action) => {
+  switch (action.type) {
+    case HYDRATE:
+      console.log("HYDRATE", action);
+      return action.payload;
+    default: {
+      const combineReducer = combineReducers({
+        user,
+        post,
+      });
+      return combineReducer(state, action);
+    }
+  }
+};
+```
+
+<br />
+
+> ** 추후 데이터 추가 **
 
 </div>
 </details>

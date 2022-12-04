@@ -1,11 +1,11 @@
-<h1 align="center">Tweeter 핵심기능 구현</h1>
+<h1 align="center">Twitter 핵심기능 구현</h1>
 <h3 align="center"> React Nodebird -Front- 정리 </h3> 
 <br />
 
 <h2 id="프로젝트소개"> :dart: 개요 및 목표</h2>
 
 <p align="justify">
-SNS 서비스 중 tweeter 에서 사용되고 있는 기능들을 학습하였습니다. <br />
+SNS 서비스 중 twitter 에서 사용되고 있는 기능들을 학습하였습니다. <br />
 로그인과 회원가입, 포스팅, 댓글, 팔로잉 및 팔로우, 인피니티 스크롤 등 SNS에서 사용될만한 서비스를 구현하였습니다.
 </p>
 <br />
@@ -46,7 +46,7 @@ SNS 서비스 중 tweeter 에서 사용되고 있는 기능들을 학습하였�
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
-<h2 align="center" id="next">:large_blue_diamond: Setting</h2>
+<h2 align="center" id="next">:large_blue_diamond: Study</h2>
 <br>
 
 <details>
@@ -151,7 +151,7 @@ Next.js 를 활용하여 SSR(Server Side Rendering) 구현이 가능해집니다
 </p>
 <br />
 
-![블로그 참고](https://rock7246.tistory.com/23)
+[블로그 참고](https://rock7246.tistory.com/23)
 
 ```
 npm i next@9
@@ -160,6 +160,111 @@ npm i next@9
 <br />
 
 > 추후 내용 추가 예정
+
+</div>
+</details>
+
+<details>
+<summary><b>antd</b></summary>
+<div markdown="1">
+<br />
+
+> **antd**
+
+<p align="justify">
+antd를 통해서 좀 더 쉽게 페이지의 레이아웃을 설정할 수 있습니다.<br />
+간단한 메뉴부터, nav, login form, layout 등등 공식 홈페이지를 참고하여 양식에 맞게 적용하면 됩니다. 전반적으로 미리 디자인이 깔끔하게 되어있지만, 수정이 필요하다면 사용자에 성향에 맞게 수정이 가능합니다. 여기선 version 4 를 사용하였습니다. 최근 버전에는 사용법이 약간 달라진 부분이 있으니 항상 공식 문서를 우선적으로 참조합시다.
+<br />
+</p>
+<br />
+
+```
+npm i antd@4
+npm i @ant-design/icons
+```
+
+<br />
+<p align='justify'> `@ant-design/icons` 도 설치해두면 아이콘을 설정할 때 아주 유용합니다. 같이 설치합시다. </p>
+<br />
+
+> 예제 (AppLayout)
+
+```js
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
+import PropTypes from "prop-types";
+import Link from "next/link";
+// 이렇게 import 에서 사용할 수 있다.
+import { Menu, Input, Row, Col } from "antd";
+
+import UserProfile from "./UserProfile";
+import LoginForm from "./LoginForm";
+import styled from "styled-components";
+
+const AppLayout = ({ children }) => {
+  const { me } = useSelector((state) => state.user);
+  return (
+    <div>
+      <Menu mode="horizontal">
+        <Menu.Item>
+          <Link href="/">
+            <a>노드버드</a>
+          </Link>
+        </Menu.Item>
+        <Menu.Item>
+          <Link href="/profile">
+            <a>프로필</a>
+          </Link>
+        </Menu.Item>
+        <Menu.Item>
+          <SearchInput
+            placeholder="input search text"
+            enterButton
+            style={{
+              width: 300,
+              verticalAlign: "middle",
+            }}
+          />
+        </Menu.Item>
+        <Menu.Item>
+          <Link href="/signup">
+            <a>회원가입</a>
+          </Link>
+        </Menu.Item>
+      </Menu>
+      <Row gutter={8}>
+        <Col xs={24} md={6}>
+          {me ? <UserProfile /> : <LoginForm />}
+        </Col>
+        <Col xs={24} md={12}>
+          {children}
+        </Col>
+        <Col xs={24} md={6}>
+          <a href="https://rock7246.tistory.com" target="_blank" rel="noreferrer noopenner">
+            By Yelihi
+          </a>
+        </Col>
+      </Row>
+    </div>
+  );
+};
+AppLayout.prototype = {
+  children: PropTypes.node.isRequired,
+};
+
+export default AppLayout;
+
+// 기존 스타일을 변경할 때 styled-component 를 활용해도 되고, 아니면 그냥 인라인으로 수정해도 된다.
+const SearchInput = styled(Input.Search)`
+  vertical-align: middle;
+`;
+```
+
+<br />
+<p align='justify'>각 요소들의 사용법은 공식 문서를 활용하도록 하자</p>
+</br>
+
+[공식 사이트](https://ant.design/)
 
 </div>
 </details>

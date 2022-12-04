@@ -893,4 +893,169 @@ initialState.mainPosts = initialState.mainPosts.concat(
 </div>
 </details>
 
+<details>
+<summary><b>immer</b></summary>
+<div markdown="1">
+<br />
+
+> **immer**
+
+<p align="justify">
+Redux 는 상태를 변경해줄 때 불변성을 지켜주었어야 했고, 스프레드 연산자를 주로 사용했습니다. (툴킷을 사용하지 않는다는 가정하에) <br />
+상황에 따라선 코드가 복잡해지곤 하는데, 이를 간단하게 바꿔줄 라이브러리가 immer 입니다.
+<br />아래처럼 설치합시다<br />
+</p>
+<br />
+
+```
+npm i immer
+```
+
+- immer 사용 예시입니다.
+
+```js
+import produce from 'immer';
+
+
+export default (state = initialState, action) => {
+  return produce(state, (draft) => {
+    switch (action.type) {
+      case ADD_POST_REQUEST: {
+        draft.addPostLoading = true;
+        draft.addPostDone = false;
+        draft.addPostError = null;
+        break;
+      }
+
+		// ....
+			case default:
+				break;
+```
+
+- produce 를 import 하여, return 부분을 produce로 감싸줍니다.
+- draft 를 state 대신 치환해줍니다.
+- 장점은 역시나 복잡한 코드를 단순하게 해준다는 점에 있습니다.
+
+```js
+case ADD_COMMENT_SUCCESS: {
+        const postIndex = state.mainPosts.findIndex(
+           (v) => v.id === action.data.postId
+         );
+         const post = { ...state.mainPosts[postIndex] };
+         post.Comments = [dummyComment(action.data.content), ...post.Comments];
+         const mainPosts = [...state.mainPosts];
+         mainPosts[postIndex] = post;
+         return {
+           ...state,
+           mainPosts,
+           addCommentLoading: false,
+           addCommentDone: true,
+         };
+      }
+```
+
+- 위 코드는 댓글을 생성할 때의 reducer 코드입니다.
+- 불변성을 지켜주기 위해서, 특정 post 를 얕은 복사를 하고, 그 내부 댓글 들도 얕은 복사를 해줍니다.
+- 이후 댓글을 추가하고, 얕은 복사된 mainPost 에 post를 치환해줍니다.
+- 얼핏 간단한 과정도, 불변성을 지켜주는 과정에서 코드가 복잡해지기 시작합니다.
+
+```js
+case ADD_COMMENT_SUCCESS: {
+        const post = draft.mainPosts.find((v) => v.id === action.data.postId);
+        post.Comments.unshift(dummyComment(action.data.content));
+        draft.addCommentLoading = false;
+        draft.addCommentDone = true;
+        break;
+      }
+```
+
+- 위 코드는 immer 를 활용한 코드입니다. 동일하게 댓글을 추가하는 과정입니다
+- 비교 시 훨씬 간단해진 코드를 확인할 수 있습니다.
+- post 를 찾아 그 내부 comment 배열에 새로생성된 댓글을 추가해주면 끝입니다.
+- immer 의 특징은 오히려 불변성을 지켜주지 말아야 한다는 점에 있습니다.
+
+<br />
+
+</div>
+</details>
+
+<details>
+<summary><b>infinite scroll</b></summary>
+<div markdown="1">
+<br />
+
+> **infinite scroll**
+
+<p align="justify">
+추가적으로 react-visualized 같은 react windowing 기법을 익히면 더욱 좋지만 우선 기본 원리부터 파악해보고자 합니다.<br />
+무한 스크롤을 적용하기 위해, 이벤트리스너에서 스크롤에 관련된 지식을 먼저 학습해야 합니다.
+<br />원래를 생각해보면 어느정도 지점의 스크롤 위치에 도달했을 때, 데이터를 추가적으로 가져오면 됩니다. 즉, 특정 지점에서 요청을 보내도록 해야합니다. 그렇기 때문에 특정 위치를 알아야 합니다. <br />
+</p>
+<br />
+
+```Js
+window.addEventListener('scroll', onScroll)
+```
+
+- scroll 이벤트를 useEffect 로 생성할 수 있습니다.
+- 참고로 이벤트 생성과 더불어 컴포넌트 소멸 시 이벤트를 지워주는것 까지 고려해야 합니다.
+- 이제 특정 위치를 파악해봅시다
+
+```js
+console.log(window.scrollY, document.documentElement.clientHeight, document.documentElement.scrollHeight);
+```
+
+- window.scrollY : 사용자가 스크롤을 내릴 때의 순간의 위치값
+- document.documentElement.clientHeight : 사용자가 사용하는 화면상의 세로폭
+- document.documentElement.scrollHeight : 스크롤로 포함된 전체 총 높이
+
+```js
+window.scrollY > document.documentElement.scrollHeight - document.documentElement.clientHeight - 1200;
+```
+
+- 즉, 위처럼 표현하면 무한 스크롤을 구현하는 기본 조건을 나타낼 수 있습니다
+- 뒤에 빼주는 숫자는 스크롤이 채 끝까지 내려가기 전에 로딩을 불러오고자 하여 일정 수치를 빼준것입니다.
+- 전체 코드로 표현해보면 아래와 같습니다.
+
+```js
+useEffect(() => {
+  // 이벤트리스너에 대응하는 함수입니다.
+  function onScroll() {
+    // 일정 높이까지 스크롤이 되었다면
+    if (window.scrollY > document.documentElement.scrollHeight - document.documentElement.clientHeight - 1200) {
+      // 요청을 보내게 됩니다.
+      if (hasMorePost && !loadPostLoading) {
+        dispatch({
+          type: LOAD_POSTS_REQUEST,
+        });
+      }
+    }
+  }
+  window.addEventListener("scroll", onScroll);
+  return () => {
+    // 컴포넌트가 소멸하면 이벤트 역시 소멸시켜주어야 합니다.
+    window.removeEventListener("scroll", onScroll);
+  };
+}, [hasMorePost, loadPostLoading]);
+```
+
+- 여기서 hasMorePost 는 계속해서 데이터를 가져오긴 그러하니, 이 상태가 false 가 된다면(예를 들어 어떠한 포스트 글의 갯수가 60개가 된다면) 더이상 dispatch 를 실행하지 않겠다는 의도입니다.
+- loadPostLoading 은 saga 를 통해 takeLatest 를 걸었다고 한들 요청 자체는 무수히 많이 들어가기 때문에, loadPostLoading 이 true 상태라면 더이상 요청하지 않는다는 방법입니다.
+- 이러한 처리가 필요한 이유는, 스크롤 이벤트의 경우 콘솔로 scrollY 를 찍어보면 알겠지만 정말 순간적으로 무수히 많이 이벤트를 호출하기 때문입니다.
+
+```js
+      case LOAD_POSTS_SUCCESS: {
+        draft.loadPostLoading = false;
+        draft.loadPostDone = true;
+        draft.mainPosts = draft.mainPosts.concat(action.data);
+        draft.hasMorePost = draft.mainPosts.length === 10; // 10개씩을 불러오고 만약 남은 개 8개이면 false 가 됩니다.
+        break;
+      }
+```
+
+- 이렇게 요청이 성공적으로 끝나면 다시 loadPostLoading 을 false 로 변경해주어 dispatch 요청이 갈 수 있도록 설정이 됩니다.
+
+</div>
+</details>
+
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)

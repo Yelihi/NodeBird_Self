@@ -261,7 +261,7 @@ const SearchInput = styled(Input.Search)`
 ```
 
 <br />
-<p align='justify'>각 요소들의 사용법은 공식 문서를 활용하도록 하자</p>
+<p align='justify'>각 요소들의 사용법은 공식 문서를 활용하도록 합시다</p>
 </br>
 
 [공식 사이트](https://ant.design/)

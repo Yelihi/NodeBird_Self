@@ -2,6 +2,9 @@ import { all, fork, takeLatest, put, delay, call } from "redux-saga/effects";
 import axios from "axios";
 
 import {
+  LOAD_MY_INFO_REQUEST,
+  LOAD_MY_INFO_SUCCESS,
+  LOAD_MY_INFO_FAILURE,
   LOAD_USER_REQUEST,
   LOAD_USER_SUCCESS,
   LOAD_USER_FAILURE,
@@ -34,8 +37,8 @@ import {
   REMOVE_FOLLOWER_FAILURE,
 } from "../reducers/user";
 
-function loadUserAPI() {
-  return axios.get("/user");
+function loadUserAPI(data) {
+  return axios.get(`/user/${data}`);
 }
 
 function* loadUser(action) {
@@ -53,6 +56,30 @@ function* loadUser(action) {
     console.log(err);
     yield put({
       type: LOAD_USER_FAILURE,
+      error: err.response.data,
+    });
+  }
+}
+
+function loadMyInfoAPI() {
+  return axios.get("/user");
+}
+
+function* loadMyInfo() {
+  // post 해줘야 하니 action.data 를 넘겨야 한다
+  try {
+    console.log("saga logIn");
+    const result = yield call(loadMyInfoAPI); // call 은 동기고 fork 는 비동기다. 그러니깐 call 을 해야지 위 axios 결과값을 기다린다.
+    console.log(result);
+    yield put({
+      // put = dispatch
+      type: LOAD_MY_INFO_SUCCESS,
+      data: result.data,
+    });
+  } catch (err) {
+    console.log(err);
+    yield put({
+      type: LOAD_MY_INFO_FAILURE,
       error: err.response.data,
     });
   }
@@ -259,6 +286,10 @@ function* watchLoadUser() {
   yield takeLatest(LOAD_USER_REQUEST, loadUser); // login action 실행될 때까지 기다리겠다.
 }
 
+function* watchLoadMyInfo() {
+  yield takeLatest(LOAD_MY_INFO_REQUEST, loadMyInfo); // login action 실행될 때까지 기다리겠다.
+}
+
 function* watchLogIn() {
   // 이벤트리스너 같은것
   yield takeLatest(LOG_IN_REQUEST, logIn); // login action 실행될 때까지 기다리겠다.
@@ -298,6 +329,7 @@ function* watchRemoveFollower() {
 
 export default function* userSaga() {
   yield all([
+    fork(watchLoadMyInfo),
     fork(watchLoadUser),
     fork(watchLogIn),
     fork(watchLogOut),

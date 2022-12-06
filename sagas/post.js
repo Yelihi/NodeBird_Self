@@ -1,12 +1,4 @@
-import {
-  all,
-  fork,
-  put,
-  take,
-  takeLatest,
-  call,
-  delay,
-} from "redux-saga/effects";
+import { all, fork, put, take, takeLatest, call, delay } from "redux-saga/effects";
 import axios from "axios";
 
 import {
@@ -16,6 +8,9 @@ import {
   UNLIKE_POST_REQUEST,
   UNLIKE_POST_SUCCESS,
   UNLIKE_POST_FAILURE,
+  LOAD_POST_REQUEST,
+  LOAD_POST_SUCCESS,
+  LOAD_POST_FAILURE,
   LOAD_POSTS_REQUEST,
   LOAD_POSTS_SUCCESS,
   LOAD_POSTS_FAILURE,
@@ -38,12 +33,32 @@ import {
 import { ADD_POST_TO_ME, REMOVE_POST_OF_ME } from "../reducers/user";
 
 function loadPostAPI(data) {
-  return axios.get(`/posts?lastId=${data || 0}`); // 쿼리스트링
+  return axios.get(`/post/${data}`); // 쿼리스트링
 }
 
 function* loadPost(action) {
   try {
     const result = yield call(loadPostAPI, action.data); // call 은 동기고 fork 는 비동기다. 그러니깐 call 을 해야지 위 axios 결과값을 기다린다.
+    yield put({
+      // put = dispatch
+      type: LOAD_POST_SUCCESS,
+      data: result.data, // 게시글 배열 및 유저 정보
+    });
+  } catch (err) {
+    yield put({
+      type: LOAD_POST_FAILURE,
+      error: err.response.data,
+    });
+  }
+}
+
+function loadPostsAPI(data) {
+  return axios.get(`/posts?lastId=${data || 0}`); // 쿼리스트링
+}
+
+function* loadPosts(action) {
+  try {
+    const result = yield call(loadPostsAPI, action.data); // call 은 동기고 fork 는 비동기다. 그러니깐 call 을 해야지 위 axios 결과값을 기다린다.
     yield put({
       // put = dispatch
       type: LOAD_POSTS_SUCCESS,
@@ -216,7 +231,11 @@ function* retweet(action) {
 }
 
 function* watchLoadPost() {
-  yield takeLatest(LOAD_POSTS_REQUEST, loadPost);
+  yield takeLatest(LOAD_POST_REQUEST, loadPost);
+}
+
+function* watchLoadsPost() {
+  yield takeLatest(LOAD_POSTS_REQUEST, loadPosts);
 }
 
 function* watchAddPost() {
@@ -250,6 +269,7 @@ function* watchRetweet() {
 export default function* postSaga() {
   yield all([
     fork(watchLoadPost),
+    fork(watchLoadsPost),
     fork(watchAddPost),
     fork(watchAddComment),
     fork(watchRemovePost),

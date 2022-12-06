@@ -5,15 +5,14 @@ const dummyUser = (data) => ({
   id: 1,
   nickname: "제로초",
   Posts: [{ id: 1 }],
-  Followings: [
-    { nickname: "eden" },
-    { nickname: "gold" },
-    { nickname: "aplo" },
-  ],
+  Followings: [{ nickname: "eden" }, { nickname: "gold" }, { nickname: "aplo" }],
   Followers: [{ nickname: "eden" }, { nickname: "gold" }, { nickname: "aplo" }],
 });
 
 export const initialState = {
+  loadMyInfoLoading: false, // 유저 정보 가져오기 시도중
+  loadMyInfoDone: false,
+  loadMyInfoError: null,
   loadUserLoading: false, // 유저 정보 가져오기 시도중
   loadUserDone: false,
   loadUserError: null,
@@ -48,6 +47,10 @@ export const initialState = {
   signUpData: {},
   loginData: {},
 };
+
+export const LOAD_MY_INFO_REQUEST = "LOAD_MY_INFO_REQUEST";
+export const LOAD_MY_INFO_SUCCESS = "LOAD_MY_INFO_SUCCESS";
+export const LOAD_MY_INFO_FAILURE = "LOAD_MY_INFO_FAILURE";
 
 export const LOAD_USER_REQUEST = "LOAD_USER_REQUEST";
 export const LOAD_USER_SUCCESS = "LOAD_USER_SUCCESS";
@@ -122,9 +125,7 @@ export default (state = initialState, action) => {
       case REMOVE_FOLLOWER_SUCCESS: {
         draft.removeFollowerLoading = false;
         draft.removeFollowerDone = true;
-        draft.me.Followers = draft.me.Followers.filter(
-          (v) => v.id !== action.data.id
-        );
+        draft.me.Followers = draft.me.Followers.filter((v) => v.id !== action.data.id);
         break;
       }
       case REMOVE_FOLLOWER_FAILURE: {
@@ -167,6 +168,24 @@ export default (state = initialState, action) => {
         draft.loadFollowersLoading = false;
         draft.loadFollowersDone = false;
         draft.loadFollowersError = action.error;
+        break;
+      }
+      case LOAD_MY_INFO_REQUEST: {
+        draft.loadMyInfoLoading = true;
+        draft.loadMyInfoDone = false;
+        draft.loadMyInfoError = null;
+        break;
+      }
+      case LOAD_MY_INFO_SUCCESS: {
+        draft.loadMyInfoLoading = false;
+        draft.loadMyInfoDone = true;
+        draft.me = action.data;
+        break;
+      }
+      case LOAD_MY_INFO_FAILURE: {
+        draft.loadMyInfoLoading = false;
+        draft.loadMyInfoDone = false;
+        draft.loadMyInfoError = action.error;
         break;
       }
       case LOAD_USER_REQUEST: {
@@ -214,9 +233,7 @@ export default (state = initialState, action) => {
       case UNFOLLOW_SUCCESS: {
         draft.unfollowLoading = false;
         draft.unfollowDone = true;
-        draft.me.Followings = draft.me.Followings.filter(
-          (v) => v.id !== action.data.id
-        );
+        draft.me.Followings = draft.me.Followings.filter((v) => v.id !== action.data.id);
         break;
       }
       case UNFOLLOW_FAILURE: {
@@ -307,9 +324,7 @@ export default (state = initialState, action) => {
       //   },
       // };
       case REMOVE_POST_OF_ME: {
-        draft.me.Posts = draft.me.Posts.filter(
-          (v) => v.id !== action.data.PostId
-        );
+        draft.me.Posts = draft.me.Posts.filter((v) => v.id !== action.data.PostId);
         break;
       }
       // return {

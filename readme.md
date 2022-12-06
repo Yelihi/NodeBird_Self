@@ -220,7 +220,40 @@ const rootReducer = (state, action) => {
 
 <br />
 
-> ** 추후 데이터 추가 **
+> **쿠키를 같이 전송하기**
+
+<p align="justify">
+프론트 서버에서 백엔드 서버에 요청을 보내게 될 때, 문제가 있는데 쿠키를 보내는 것에 문제가 생깁니다. 원래 쿠키를 백엔드 서버로 전달할 때는 브라우저에서 직접 전달을 해주었기에 별다른 조치가 필요없지만, next 초기 렌더링의 경우 프론트서버에서 백엔드 서버로의 요청이기 때문에, 따로 쿠키까지 보내는 코드를 작성해야 합니다. 만일 쿠키를 보내지 않으면 로그인 상태가 유지가 되질 않습니다.
+</p>
+
+```js
+export const getServerSideProps = wrapper.getServerSideProps(async (context) => {
+  // 쿠키를 실제 변수에 넣어줍니다. 요청이 있을 때만
+  const cookie = context.req ? context.req.header.cookie : "";
+  // 중요한 부분인데, 꼭 이렇게 초기화를 해주어야 합니다.
+  axios.defaults.headers.Cookie = "";
+  if (context.req && cookie) {
+    // 쿠키를 같이 넣어 벡엔드에 전달을 할 준비를 합니다.
+    axios.defaults.headers.Cookie = cookie;
+  }
+  context.store.dispatch({
+    // 이후 서버에 요청을 합니다.
+    type: LOAD_USER_REQUEST,
+  });
+  context.store.dispatch({
+    type: LOAD_POSTS_REQUEST,
+  });
+  // success 까지 기다리기 위해서 하는 조치
+  context.store.dispatch(END);
+  //store.sagaTask 는 기존에 configStore.js 에서 처리함
+  await context.store.sagaTask.toPromise();
+});
+```
+
+<p align="justify">
+쿠키를 담아서 백엔드 서버에 전달하는것은 좋으나, getServerSideProps 를 통해 요청을 보낼때마다, `axios.defaults.headers.Cookie` 를 초기화 하지 않는다면, 문제가 발생합니다.
+<br /><br /> 프론트 서버는 단 한대이고, 이 서버에 특정 유저의 쿠키가 default 로 저장이 되어있다면, 마치 한 컴퓨터에서 유저1이 로그인을 했는데, 다른 컴퓨터에서 접속을 하니 유저1로 로그인 된 상태가 되어있을 수 있습니다. 심각한 오류이기 때문에 항상 요청마다 초기화를 진행하여야 합니다.
+</p>
 
 </div>
 </details>

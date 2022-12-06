@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Router from "next/router";
 import AppLayout from "../components/AppLayout";
+import axios from "axios";
+import { END } from "redux-saga";
+
 import { Form, Input, Checkbox, Button } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
@@ -8,11 +11,12 @@ import styled from "styled-components";
 import useInput from "../hooks/useInput";
 import { signUpRequestAction } from "../reducers/user";
 
+import wrapper from "../store/configureStore";
+import { LOAD_MY_INFO_REQUEST } from "../reducers/user";
+
 const signup = () => {
   const dispatch = useDispatch();
-  const { signUpLoading, signUpDone, signUpError, me } = useSelector(
-    (state) => state.user
-  );
+  const { signUpLoading, signUpDone, signUpError, me } = useSelector((state) => state.user);
 
   useEffect(() => {
     if (me && me.id) {
@@ -68,48 +72,23 @@ const signup = () => {
         <div>
           <label htmlFor="user-email">이메일</label>
           <br />
-          <Input
-            name="user-email"
-            value={email}
-            type="email"
-            onChange={onChangeEmail}
-            required
-          />
+          <Input name="user-email" value={email} type="email" onChange={onChangeEmail} required />
         </div>
         <div>
           <label htmlFor="user-nickname">닉네임</label>
           <br />
-          <Input
-            name="nickname"
-            value={nickname}
-            onChange={onChangeNickname}
-            required
-          />
+          <Input name="nickname" value={nickname} onChange={onChangeNickname} required />
         </div>
         <div>
           <label htmlFor="password">비밀번호</label>
           <br />
-          <Input
-            name="password"
-            type="password"
-            value={password}
-            onChange={onChangePassword}
-            required
-          />
+          <Input name="password" type="password" value={password} onChange={onChangePassword} required />
         </div>
         <div>
           <label htmlFor="password-check">비밀번호체크</label>
           <br />
-          <Input
-            name="passwordCheck"
-            type="password"
-            value={passwordCheck}
-            onChange={onChangePasswordCheck}
-            required
-          />
-          {passwordError && (
-            <ErrorMessage>비밀번호가 일치하지 않습니다.</ErrorMessage>
-          )}
+          <Input name="passwordCheck" type="password" value={passwordCheck} onChange={onChangePasswordCheck} required />
+          {passwordError && <ErrorMessage>비밀번호가 일치하지 않습니다.</ErrorMessage>}
         </div>
         <div>
           <Checkbox name="user-term" checked={term} onChange={onChangeTerm}>
@@ -126,6 +105,23 @@ const signup = () => {
     </AppLayout>
   );
 };
+
+export const getServerSideProps = wrapper.getServerSideProps(async (context) => {
+  console.log("getServerSideProps Start");
+  console.log(context);
+  const cookie = context.req ? context.req.headers.cookie : "";
+  axios.defaults.headers.Cookie = "";
+  if (context.req && cookie) {
+    axios.defaults.headers.Cookie = cookie;
+  }
+  context.store.dispatch({
+    type: LOAD_MY_INFO_REQUEST,
+  });
+  // success 까지 기다리기 위해서 하는 조치
+  context.store.dispatch(END);
+  //store.sagaTask 는 기존에 configStore.js 에서 처리함
+  await context.store.sagaTask.toPromise();
+});
 
 export default signup;
 

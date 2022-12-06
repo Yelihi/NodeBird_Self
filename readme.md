@@ -254,6 +254,109 @@ export const getServerSideProps = wrapper.getServerSideProps(async (context) => 
 쿠키를 담아서 백엔드 서버에 전달하는것은 좋으나, getServerSideProps 를 통해 요청을 보낼때마다, `axios.defaults.headers.Cookie` 를 초기화 하지 않는다면, 문제가 발생합니다.
 <br /><br /> 프론트 서버는 단 한대이고, 이 서버에 특정 유저의 쿠키가 default 로 저장이 되어있다면, 마치 한 컴퓨터에서 유저1이 로그인을 했는데, 다른 컴퓨터에서 접속을 하니 유저1로 로그인 된 상태가 되어있을 수 있습니다. 심각한 오류이기 때문에 항상 요청마다 초기화를 진행하여야 합니다.
 </p>
+<br />
+
+> **getStaticProps**
+
+<p align="justify">
+getStaticProps를 사용하는 경우, 서버에서 가져오는 데이터를 통해 미리 완성된 html 페이지를 보여줄 수 있게 됩니다. 즉, 서버단에서 이미 html 로 완성된 페이지를 가지고 있고, 매번 요청때마다 이 페이지를 재활용하여 보내주게 됩니다. 미리 페이지를 생성해놓았다는 점에서 getServerSideProps 방식보다 더 서버 사용 효율성이 있을 수 있으나, 현실적으로 활용하기에는 그 범위가 크지 않습니다. 현 시대의 웹 페이지들은 거의 대부분 동적이기 때문입니다.
+<br /><br /> 예를 들어서 네이버 메인 페이지를 생각해보면, 이 페이지를 미리 만들어서 재활용한다고 생각할 수 없습니다. 실시간으로 뉴스탭이 변화하며, 날씨의 변화에 따라 애니매이션 효과도 나타나며, 각종 광고들 등등 메인 페이지에는 무수히 많은 데이터 요청들을 주고 받게 됩니다. 만약 이러한 데이터 교환이 없다고 가정할지라도, 로그인 여부에 따라 보여지는 페이지 역시 변화가 이뤄질 수 있기 때문에, 거의 대부분의 페이지에서는 getServerSideProps 를 통하여 미리 프론트엔드 서버단에서 데이터를 가져와 활용하게 됩니다. <br /><br />굳이 사용해야겠다면 정말로 변경사항이 없는 정적인 페이지(블로그 포스팅 정도?)는 가능할 수 있으나, 역시 상황에 따라 변할 수 있다. 사용법은 getServerSideProps 와 별반 다르지 않다.
+</p>
+
+```js
+export const getStaticProps = wrapper.getStaticProps(async (context) => {
+  context.store.dispatch({
+    type: LOAD_POST_REQUEST,
+    data: context.params.id,
+  });
+  context.store.dispatch(END);
+  await context.store.sagaTask.toPromise();
+});
+```
+
+<br />
+
+> **Dynamic Routing**
+
+<p align="justify">
+어떠한 리스트 페이지에서 하나의 아이템을 클릭했을 시, 그 아이템에 대한 상세페이지로 이동한다고 가정해보겠습니다. 각각의 상세페이지마다 query 를 가지고 있어야 되는데, 이전 next 8버전에서는 이러한 라우팅 기능을 제공하지 않았습니다. 허나 이제 9버전을 넘어오면서 이러한 라우팅 문제를 간단하게 해결하도록 구현방법을 제공하게 되었습니다.<br /><br />pages 폴더에서 사용하고자 하는 라우팅 주소를 폴더나 파일명으로 결정할 수 있다고 알고있습니다. 예를 들어서 post/:postId 형식의 페이지 라우팅을 하고 싶다면, post 폴더를 생성하고, 그 안에 파일명을 [id].js 로 만들면 됩니다. next 에서 알아서 해석합니다.
+</p>
+
+```js
+import { useRouter } from "next/router";
+
+const Post = () => {
+  const router = useRouter();
+  const { id } = router.query;
+
+  return <div>{id}번 개시글</div>;
+};
+
+export default Post;
+```
+
+> 기본적인 셋팅입니다. useRouter 을 `next/router` 에서 가져온 뒤, 이를 통해 id 에 접근할 수 있습니다. 이 id 는 현 특정 post의 params id 이며 이를 통해 useEffect 로 데이터를 요청할 때 사용할 수 있습니다. 그 외에도 알맞게 사용하면 됩니다.
+
+<p align="justify">
+서버에 getServerSideProps 를 통해서나 혹은 useEffect 를 통해서나 데이터를 보낼 떼도 params id 를 같이 전송할 수 있습니다. 이를 통해 특정 post 글을 가져올 수 있게 되었습니다.
+</p>
+
+```js
+import { useRouter } from "next/router";
+import axios from "axios";
+import { useSelector } from "react-redux";
+import { END } from "redux-saga";
+
+import wrapper from "../../store/configureStore";
+import AppLayout from "../../components/AppLayout";
+import PostCard from "../../components/PostCard";
+
+import { LOAD_MY_INFO_REQUEST } from "../../reducers/user";
+import { LOAD_POST_REQUEST } from "../../reducers/post";
+
+const Post = () => {
+  const router = useRouter();
+  const { singlePost } = useSelector((state) => state.post);
+  const { id } = router.query;
+
+  return (
+    <AppLayout>
+      <Head>
+        <title>{singlePost.User.nickname} 님의 글</title>
+        <meta name="description" content={singlePost.content} />
+        <meta property="og:title" content={`${singlePost.User.nickname}님의 게시글`} />
+        <meta property="og:description" content={singlePost.content} />
+        <meta property="og:image" content={singlePost.Images[0] ? singlePost.Images[0].src : `http://nodebird.com/favicon.ico`} />
+        <meta property="og:url" content={`http://nodebird.com/post/${id}`} />
+      </Head>
+      <PostCard post={singlePost} />
+    </AppLayout>
+  );
+};
+
+export const getServerSideProps = wrapper.getServerSideProps(async (context) => {
+  console.log("getServerSideProps Start");
+  const cookie = context.req ? context.req.headers.cookie : "";
+  axios.defaults.headers.Cookie = "";
+  if (context.req && cookie) {
+    axios.defaults.headers.Cookie = cookie;
+  }
+  context.store.dispatch({
+    type: LOAD_MY_INFO_REQUEST,
+  });
+  context.store.dispatch({
+    type: LOAD_POST_REQUEST,
+    data: context.params.id, // context.query.id
+    // 이를 통해 id 를 전달할 수 있습니다.
+  });
+  context.store.dispatch(END);
+  await context.store.sagaTask.toPromise();
+});
+
+export default Post;
+```
+
+> 서버에 요청을 할 때 전달 data 로 id 값을 전달해야지만, 데이터베이스에서 이에 맞는 게시글을 전달할 것입니다. 이 id 는 `context.params.id` 에 들어있습니다. 이는 `context.query.id` 로 하여도 관계 없습니다.
 
 </div>
 </details>

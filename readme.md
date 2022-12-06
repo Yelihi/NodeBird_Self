@@ -251,7 +251,7 @@ export const getServerSideProps = wrapper.getServerSideProps(async (context) => 
 ```
 
 <p align="justify">
-쿠키를 담아서 백엔드 서버에 전달하는것은 좋으나, getServerSideProps 를 통해 요청을 보낼때마다, `axios.defaults.headers.Cookie` 를 초기화 하지 않는다면, 문제가 발생합니다.
+쿠키를 담아서 백엔드 서버에 전달하는것은 좋으나, getServerSideProps 를 통해 요청을 보낼때마다, axios.defaults.headers.Cookie를 초기화 하지 않는다면 문제가 발생합니다.
 <br /><br /> 프론트 서버는 단 한대이고, 이 서버에 특정 유저의 쿠키가 default 로 저장이 되어있다면, 마치 한 컴퓨터에서 유저1이 로그인을 했는데, 다른 컴퓨터에서 접속을 하니 유저1로 로그인 된 상태가 되어있을 수 있습니다. 심각한 오류이기 때문에 항상 요청마다 초기화를 진행하여야 합니다.
 </p>
 <br />

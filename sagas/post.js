@@ -11,6 +11,12 @@ import {
   LOAD_POST_REQUEST,
   LOAD_POST_SUCCESS,
   LOAD_POST_FAILURE,
+  LOAD_HASHTAG_POSTS_REQUEST,
+  LOAD_HASHTAG_POSTS_SUCCESS,
+  LOAD_HASHTAG_POSTS_FAILURE,
+  LOAD_USER_POSTS_REQUEST,
+  LOAD_USER_POSTS_SUCCESS,
+  LOAD_USER_POSTS_FAILURE,
   LOAD_POSTS_REQUEST,
   LOAD_POSTS_SUCCESS,
   LOAD_POSTS_FAILURE,
@@ -52,6 +58,48 @@ function* loadPost(action) {
   }
 }
 
+function loadUserPostsAPI(data, lastId) {
+  return axios.get(`/user/${data}/posts?lastId=${lastId || 0}`); // 쿼리스트링
+}
+
+function* loadUserPosts(action) {
+  try {
+    const result = yield call(loadUserPostsAPI, action.data, action.lastId); // call 은 동기고 fork 는 비동기다. 그러니깐 call 을 해야지 위 axios 결과값을 기다린다.
+    yield put({
+      // put = dispatch
+      type: LOAD_USER_POSTS_SUCCESS,
+      data: result.data, // 게시글 배열 및 유저 정보
+    });
+  } catch (err) {
+    console.error(err);
+    yield put({
+      type: LOAD_USER_POSTS_FAILURE,
+      error: err.response.data,
+    });
+  }
+}
+
+function loadHashtagPostsAPI(data, lastId) {
+  return axios.get(`/hashtag/${encodeURIComponent(data)}?lastId=${lastId || 0}`); // 쿼리스트링
+}
+
+function* loadHashtagPosts(action) {
+  try {
+    const result = yield call(loadHashtagPostsAPI, action.data, action.lastId); // call 은 동기고 fork 는 비동기다. 그러니깐 call 을 해야지 위 axios 결과값을 기다린다.
+    yield put({
+      // put = dispatch
+      type: LOAD_HASHTAG_POSTS_SUCCESS,
+      data: result.data, // 게시글 배열 및 유저 정보
+    });
+  } catch (err) {
+    console.error(err);
+    yield put({
+      type: LOAD_HASHTAG_POSTS_FAILURE,
+      error: err.response.data,
+    });
+  }
+}
+
 function loadPostsAPI(data) {
   return axios.get(`/posts?lastId=${data || 0}`); // 쿼리스트링
 }
@@ -65,6 +113,7 @@ function* loadPosts(action) {
       data: result.data, // 게시글 배열 및 유저 정보
     });
   } catch (err) {
+    console.error(err);
     yield put({
       type: LOAD_POSTS_FAILURE,
       error: err.response.data,
@@ -117,6 +166,7 @@ function* removePost(action) {
       data: result.data,
     });
   } catch (err) {
+    console.error(err);
     yield put({
       type: REMOVE_POST_FAILURE,
       error: err.response.data,
@@ -137,6 +187,7 @@ function* likePost(action) {
       data: result.data,
     });
   } catch (err) {
+    console.error(err);
     yield put({
       type: LIKE_POST_FAILURE,
       error: err.response.data,
@@ -157,6 +208,7 @@ function* unlikePost(action) {
       data: result.data,
     });
   } catch (err) {
+    console.error(err);
     yield put({
       type: UNLIKE_POST_FAILURE,
       error: err.response.data,
@@ -234,6 +286,14 @@ function* watchLoadPost() {
   yield takeLatest(LOAD_POST_REQUEST, loadPost);
 }
 
+function* watchLoadsUserPost() {
+  yield takeLatest(LOAD_USER_POSTS_REQUEST, loadUserPosts);
+}
+
+function* watchLoadsHashtagPost() {
+  yield takeLatest(LOAD_HASHTAG_POSTS_REQUEST, loadHashtagPosts);
+}
+
 function* watchLoadsPost() {
   yield takeLatest(LOAD_POSTS_REQUEST, loadPosts);
 }
@@ -270,6 +330,8 @@ export default function* postSaga() {
   yield all([
     fork(watchLoadPost),
     fork(watchLoadsPost),
+    fork(watchLoadsUserPost),
+    fork(watchLoadsHashtagPost),
     fork(watchAddPost),
     fork(watchAddComment),
     fork(watchRemovePost),

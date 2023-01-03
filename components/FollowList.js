@@ -6,7 +6,7 @@ import PropTypes from "prop-types";
 import { useDispatch } from "react-redux";
 import { UNFOLLOW_REQUEST, REMOVE_FOLLOWER_REQUEST } from "../reducers/user";
 
-const FollowList = ({ header, data }) => {
+const FollowList = ({ header, data, onClickMore, loading }) => {
   const dispatch = useDispatch();
   const onCencel = (id) => () => {
     // 이벤트에 인자로 넘기고싶은게 있다면, 고차함수 활용
@@ -30,16 +30,16 @@ const FollowList = ({ header, data }) => {
       header={<div>{header}</div>}
       loadMore={
         <div style={{ textAlign: "center", margin: "10px 0" }}>
-          <Button>더 보기</Button>
+          <Button onClick={onClickMore} loading={loading}>
+            더 보기
+          </Button>
         </div>
       }
       bordered
       dataSource={data}
       renderItem={(item) => (
         <List.Item style={{ marginTop: 20 }}>
-          <Card
-            actions={[<StopOutlined key="stop" onClick={onCencel(item.id)} />]}
-          >
+          <Card actions={[<StopOutlined key="stop" onClick={onCencel(item.id)} />]}>
             <Card.Meta description={item.nickname} />
           </Card>
         </List.Item>
@@ -51,6 +51,8 @@ const FollowList = ({ header, data }) => {
 FollowList.prototype = {
   header: PropTypes.string.isRequired,
   data: PropTypes.array.isRequired,
+  onClickMore: PropTypes.func.isRequired,
+  loading: PropTypes.bool.isRequired,
 };
 
 export default FollowList;

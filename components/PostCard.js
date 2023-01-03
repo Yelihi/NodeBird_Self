@@ -1,15 +1,10 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { Card, Button, Avatar, Popover, List, Comment } from "antd";
 import PropTypes from "prop-types";
-import {
-  RetweetOutlined,
-  HeartTwoTone,
-  HeartOutlined,
-  MessageOutlined,
-  EllipsisOutlined,
-} from "@ant-design/icons";
+import { RetweetOutlined, HeartTwoTone, HeartOutlined, MessageOutlined, EllipsisOutlined } from "@ant-design/icons";
 import styled from "styled-components";
 import Link from "next/link";
+import moment from "moment";
 import { useDispatch, useSelector } from "react-redux";
 
 import CommentForm from "./CommentForm";
@@ -17,16 +12,13 @@ import PostCardContent from "./PostCardContent";
 import PostImages from "./PostImages";
 import FollowButton from "./FollowButton";
 
-import {
-  REMOVE_POST_REQUEST,
-  LIKE_POST_REQUEST,
-  UNLIKE_POST_REQUEST,
-  RETWEET_REQUEST,
-} from "../reducers/post";
+import { REMOVE_POST_REQUEST, LIKE_POST_REQUEST, UNLIKE_POST_REQUEST, RETWEET_REQUEST } from "../reducers/post";
 
 const CardWrapper = styled.div`
   margin-bottom: 20px;
 `;
+
+moment.locale("ko");
 
 const PostCard = ({ post }) => {
   const dispatch = useDispatch();
@@ -89,15 +81,7 @@ const PostCard = ({ post }) => {
         cover={post.Images[0] && <PostImages images={post.Images} />}
         actions={[
           <RetweetOutlined key="retweet" onClick={onRetweet} />,
-          liked ? (
-            <HeartTwoTone
-              twoToneColor="#eb2f96"
-              key="heart"
-              onClick={onUnlike}
-            />
-          ) : (
-            <HeartOutlined key="heart" onClick={onLike} />
-          ),
+          liked ? <HeartTwoTone twoToneColor="#eb2f96" key="heart" onClick={onUnlike} /> : <HeartOutlined key="heart" onClick={onLike} />,
           <MessageOutlined key="message" onClick={onToggleComment} />,
           <Popover
             key="ellipsis"
@@ -106,11 +90,7 @@ const PostCard = ({ post }) => {
                 {id && post.User.id === id ? (
                   <>
                     <Button>수정</Button>
-                    <Button
-                      type="danger"
-                      onClick={onRemovePost}
-                      loading={removePostLoading}
-                    >
+                    <Button type="danger" onClick={onRemovePost} loading={removePostLoading}>
                       삭제
                     </Button>
                   </>
@@ -123,31 +103,19 @@ const PostCard = ({ post }) => {
             <EllipsisOutlined />
           </Popover>,
         ]}
-        title={
-          post.RetweetId ? `${post.User.nickname}님이 리트윗하셨습니다.` : null
-        }
+        title={post.RetweetId ? `${post.User.nickname}님이 리트윗하셨습니다.` : null}
         extra={id && <FollowButton post={post} />}
       >
         {post.RetweetId && post.Retweet ? (
-          <Card
-            cover={
-              post.Retweet.Images[0] && (
-                <PostImages images={post.Retweet.Images} />
-              )
-            }
-          >
-            <Card.Meta
-              avatar={<Avatar>{post.Retweet.User.nickname[0]}</Avatar>}
-              title={post.Retweet.User.nickname}
-              description={<PostCardContent postData={post.Retweet.content} />}
-            />
+          <Card cover={post.Retweet.Images[0] && <PostImages images={post.Retweet.Images} />}>
+            <div style={{ float: "right" }}>{moment(post.createdAt).format("YYYY.MM.DD")}</div>
+            <Card.Meta avatar={<Avatar>{post.Retweet.User.nickname[0]}</Avatar>} title={post.Retweet.User.nickname} description={<PostCardContent postData={post.Retweet.content} />} />
           </Card>
         ) : (
-          <Card.Meta
-            avatar={<Avatar>{post.User.nickname[0]}</Avatar>}
-            title={post.User.nickname}
-            description={<PostCardContent postData={post.content} />}
-          />
+          <>
+            <div style={{ float: "right" }}>{moment(post.createdAt).format("YYYY.MM.DD")}</div>
+            <Card.Meta avatar={<Avatar>{post.User.nickname[0]}</Avatar>} title={post.User.nickname} description={<PostCardContent postData={post.content} />} />
+          </>
         )}
       </Card>
       {commentFormOpened && (
@@ -162,10 +130,7 @@ const PostCard = ({ post }) => {
                 <Comment
                   author={item.User.nickname}
                   avatar={
-                    <Link
-                      href={{ pathname: "/user", query: { id: item.User.id } }}
-                      as={`/user/${item.User.id}`}
-                    >
+                    <Link href={{ pathname: "/user", query: { id: item.User.id } }} as={`/user/${item.User.id}`}>
                       <a>
                         <Avatar>{item.User.nickname[0]}</Avatar>
                       </a>

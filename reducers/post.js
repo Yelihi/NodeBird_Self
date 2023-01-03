@@ -1,6 +1,5 @@
 import shortId from "shortid";
 import produce from "immer";
-import { faker } from "@faker-js/faker";
 
 export const initialState = {
   mainPosts: [],
@@ -36,32 +35,32 @@ export const initialState = {
   retweetError: null,
 };
 
-export const generateDummyPost = (number) =>
-  Array(number)
-    .fill()
-    .map(() => ({
-      id: shortId.generate(),
-      User: {
-        id: shortId.generate(),
-        nickname: faker.internet.userName(),
-      },
-      content: faker.lorem.paragraph(),
-      Images: [
-        {
-          src: faker.image.cats(),
-        },
-      ],
-      Comments: [
-        {
-          id: shortId.generate(),
-          User: {
-            id: shortId.generate(),
-            nickname: faker.internet.userName(),
-          },
-          content: faker.word.adjective(),
-        },
-      ],
-    }));
+// export const generateDummyPost = (number) =>
+//   Array(number)
+//     .fill()
+//     .map(() => ({
+//       id: shortId.generate(),
+//       User: {
+//         id: shortId.generate(),
+//         nickname: faker.internet.userName(),
+//       },
+//       content: faker.lorem.paragraph(),
+//       Images: [
+//         {
+//           src: faker.image.cats(),
+//         },
+//       ],
+//       Comments: [
+//         {
+//           id: shortId.generate(),
+//           User: {
+//             id: shortId.generate(),
+//             nickname: faker.internet.userName(),
+//           },
+//           content: faker.word.adjective(),
+//         },
+//       ],
+//     }));
 
 export const RETWEET_REQUEST = "RETWEET_REQUEST";
 export const RETWEET_SUCCESS = "RETWEET_SUCCESS";
